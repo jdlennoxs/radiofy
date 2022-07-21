@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev:ws": "ts-node-dev --project tsconfig.server.json --respawn --transpile-only src/server/ws-server.ts",
+    "dev:next": "next dev",
+    "dev": "run-p dev:*",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -19,22 +21,29 @@
     "axios": "^0.27.2",
     "next": "12.2.0",
     "next-auth": "^4.8.0",
+    "node-fetch": "2.6.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-query": "^3.39.1",
     "superjson": "^1.9.1",
+    "ws": "^8.8.1",
     "zod": "^3.17.3"
   },
   "devDependencies": {
     "@types/node": "18.0.0",
+    "@types/node-fetch": "^2.6.2",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
+    "@types/spotify-web-api-node": "^5.0.7",
+    "@types/ws": "^8.5.3",
     "autoprefixer": "^10.4.7",
     "eslint": "8.18.0",
     "eslint-config-next": "12.1.6",
+    "npm-run-all": "^4.1.5",
     "postcss": "^8.4.14",
     "prisma": "^4.0.0",
     "tailwindcss": "^3.1.4",
+    "ts-node-dev": "^2.0.0",
     "typescript": "4.7.4"
   }
 }

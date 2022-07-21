@@ -1,6 +1,6 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
-import spotifyApi from "../../../server/spotify";
+import { spotifyApi } from "../../../server/router/spotify";
 
 // Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -60,12 +60,10 @@ export const authOptions: NextAuthOptions = {
       authorization: `https://accounts.spotify.com/authorize?${queryParamString.toString()}`,
     }),
   ],
-  // secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, user, account }) {
       // Initial sign in
       if (account && user) {
-        console.log("account", account);
         return {
           ...token,
           accessToken: account.access_token,
@@ -74,7 +72,6 @@ export const authOptions: NextAuthOptions = {
           user,
         };
       }
-
       // Return previous token if the access token has not expired yet
       if (Date.now() < token.accessTokenExpires) {
         return token;
