@@ -7,8 +7,21 @@ import {
 import { Events } from "../../constants/events";
 import { randomUUID } from "crypto";
 import * as trpc from "@trpc/server";
+import { z } from "zod";
 
 export const stationRouter = createRouter()
+  .query("getStation", {
+    input: z.object({
+      id: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      return ctx.prisma.station.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+    },
+  })
   .mutation("send-message", {
     input: sendMessageSchema,
     resolve({ ctx, input }) {

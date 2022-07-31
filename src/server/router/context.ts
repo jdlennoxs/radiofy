@@ -10,6 +10,7 @@ import { WebSocket } from "ws";
 
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
 import { prisma } from "../db/client";
+import { spotifyApi as spotify } from "../spotify/client";
 
 const eventEmitter = new EventEmitter();
 
@@ -23,10 +24,13 @@ export const createContext = async (
 
   const session = req && res && (await getSession({ req }));
 
+  spotify.setAccessToken(session.accessToken);
+
   return {
     req,
     res,
     session,
+    spotify,
     prisma,
     eventEmitter,
   };

@@ -1,12 +1,11 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
-import { spotifyApi } from "../../../server/router/spotify";
+import { spotifyApi } from "../../../server/spotify/client";
 
 // Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "../../../server/db/client";
 import { JWT } from "next-auth/jwt";
-import { SessionProvider } from "next-auth/react";
 
 const scopes = [
   "user-read-recently-played",
@@ -52,7 +51,7 @@ async function refreshAccessToken(token: JWT) {
 
 export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
-  // adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID || "",
@@ -60,6 +59,7 @@ export const authOptions: NextAuthOptions = {
       authorization: `https://accounts.spotify.com/authorize?${queryParamString.toString()}`,
     }),
   ],
+  session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, user, account }) {
       // Initial sign in
@@ -80,10 +80,11 @@ export const authOptions: NextAuthOptions = {
       // Access token has expired, try to update it
       return refreshAccessToken(token);
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       session.accessToken = token.accessToken;
       session.refreshToken = token.refreshToken;
       session.error = token.error;
+      session.user.id = token.sub;
 
       return session;
     },

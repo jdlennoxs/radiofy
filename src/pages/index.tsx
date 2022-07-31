@@ -5,7 +5,9 @@ import { trpc } from "../utils/trpc";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 const Home: NextPage = () => {
-  // const current = trpc.useQuery(["spotify.getCurrentTrack"]);
+  const { data: devices } = trpc.useQuery(["spotify.getDevices"]);
+  const { data: myStations } = trpc.useQuery(["dashboard.getOwned"]);
+  // const { data: stations } = trpc.useQuery(["stations.getRecent"]);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -20,9 +22,15 @@ const Home: NextPage = () => {
       <div className="w-screen min-h-screen flex flex-col justify-center items-center p-4 overflow-y-scroll">
         {session ? (
           <>
-            <button onClick={() => router.push(`/stations/1234`)}>
-              Go to station
-            </button>
+            <h2>Stations</h2>
+            {myStations?.map((station) => (
+              <button onClick={() => router.push(`/stations/${station.id}`)}>
+                {station.name}
+              </button>
+            ))}
+
+            {devices?.body.devices &&
+              devices?.body.devices.map((d) => <p>{d.name}</p>)}
           </>
         ) : (
           <>

@@ -25,7 +25,15 @@ const MessageItem = ({
 const Station: NextPage = () => {
   const { data: session } = useSession();
   const { query } = useRouter();
+
   const stationId = query.stationId as string;
+  console.log(stationId);
+  const { data: station } = trpc.useQuery([
+    "station.getStation",
+    {
+      id: stationId,
+    },
+  ]);
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,7 +61,8 @@ const Station: NextPage = () => {
   return (
     <div className="flex flex-col h-screen p-4">
       <div className="flex-1">
-        <div>Welcome to station {stationId}</div>
+        {console.log(station)}
+        <div>Welcome to {station?.name}</div>
         <ul className="flex flex-col p-4">
           {messages.map((message) => (
             <MessageItem key={message.id} message={message} session={session} />
