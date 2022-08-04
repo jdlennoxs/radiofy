@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Station from "../components/Station";
 
 const Home: NextPage = () => {
   const { data: devices } = trpc.useQuery(["spotify.getDevices"]);
@@ -21,17 +22,11 @@ const Home: NextPage = () => {
 
       <div className="w-screen min-h-screen flex flex-col justify-center items-center p-4 overflow-y-scroll">
         {session ? (
-          <>
-            <h2>Stations</h2>
+          <div className="flex gap-10">
             {myStations?.map((station) => (
-              <button onClick={() => router.push(`/stations/${station.id}`)}>
-                {station.name}
-              </button>
+              <Station station={station} />
             ))}
-
-            {devices?.body.devices &&
-              devices?.body.devices.map((d) => <p>{d.name}</p>)}
-          </>
+          </div>
         ) : (
           <>
             {" "}

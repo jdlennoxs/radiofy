@@ -58,11 +58,13 @@ model VerificationToken {
 }
 
 model Station {
-  id      String    @id @default(cuid())
-  name    String
-  admin   User      @relation(references: [id], fields: [userId])
-  userId  String
-  Message Message[]
+  id          String    @id @default(cuid())
+  name        String
+  admin       User      @relation(references: [id], fields: [userId])
+  userId      String
+  lastPlayed  String?
+  isLive      Boolean?
+  Message     Message[]
 }
 
 model Message {
