@@ -21,15 +21,16 @@ const TrackUpdate = ({
       ],
     },
   };
+
   const [bbox, ref] = useRect();
 
   return (
     <section
       ref={ref}
-      className={`items-end space-x-7 p-4 w-full tranition-[background] duration-150 ease-in-out ${
+      className={`items-end space-x-7 p-4 transition-[background] duration-150 ease-in-out ${
         bbox?.top === 0
-          ? "bg-gradient-to-b from-zinc-800 to-zinc-700 bg-zinc-800"
-          : "bg-zinc-800"
+          ? "bg-zinc-100"
+          : "bg-white border border-zinc-200 rounded-lg  m-4 "
       } ${isCurrentlyPlaying && "sticky top-0"}`}
     >
       <div className="flex items-center space-x-4">
@@ -41,8 +42,8 @@ const TrackUpdate = ({
           alt=""
         />
         <div>
-          <h3 className="text-white font-semibold">{song?.name}</h3>
-          <p className="text-neutral-100">{song.artists?.[0]?.name}</p>
+          <h3 className="text-zinc-900 font-semibold">{song?.name}</h3>
+          <p className="text-zinc-700">{song.artists?.[0]?.name}</p>
         </div>
       </div>
     </section>
