@@ -1,50 +1,22 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import useDebounce from "../hooks/useDebounce";
 import { trpc } from "../utils/trpc";
+import Devices from "./Devices";
+import Playlist from "./Playlist";
+import Queue from "./Queue";
 
 const StationInfo = () => {
-  const [playlistId, setPlaylistId] = useState("");
-  const { data: devices } = trpc.useQuery(["spotify.getDevices"]);
-  const { data: playlists } = trpc.useQuery(["spotify.getUserPlaylists"]);
-  const { data: playlist } = trpc.useQuery([
-    "spotify.getPlaylist",
-    { id: playlistId },
-  ]);
-  const { mutateAsync: startPlayback } = trpc.useMutation(
-    "spotify.startPlayback"
-  );
-  console.log(playlistId);
-  console.log(playlist);
+  const [queue, setQueue] = useState<any>([]);
 
   return (
-    <div className="text-white">
-      {devices?.body.devices.map((d) => (
-        <h3>{d.name}</h3>
-      ))}
-      <ul>
-        {playlists?.body.items.map((p) => (
-          <li>
-            <button
-              onClick={() => {
-                setPlaylistId(p.id);
-              }}
-            >
-              {p.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <ul>
-        {playlist?.body.tracks.items.map((t) => (
-          <li>
-            <button onClick={() => startPlayback([t.track?.uri])}>
-              <>
-                <h3>{t.track?.name}</h3>
-                <h4>{t.track?.artists.flatMap((a) => a.name).join(", ")}</h4>
-              </>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="flex-col mx-auto w-full lg:w-1/2 flex bg-zinc-900">
+      <Queue queue={queue} setQueue={setQueue} />
+      <Playlist
+        addToQueue={(track) => {
+          const currentQueue = new Set(queue);
+          setQueue(Array.from(currentQueue.add(track)));
+        }}
+      />
     </div>
   );
 };

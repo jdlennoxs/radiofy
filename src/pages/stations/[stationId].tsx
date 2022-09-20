@@ -19,7 +19,6 @@ const Station: NextPage = () => {
   ]);
 
   useEffect(() => {
-    console.log(document.documentElement.scrollHeight);
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: "auto",
@@ -35,13 +34,9 @@ const Station: NextPage = () => {
   }
 
   return (
-    <div className="flex flex-wrap sm:flex-row items-stretch h-screen">
-      <div className="w-full md:w-1/2 flex bg-zinc-900 overflow-none">
-        <StationInfo />
-      </div>
-      <div className="flex flex-col flex-grow bg-white">
-        <Chat station={station} session={session} />
-      </div>
+    <div className="flex sm:flex-row items-stretch h-screen overflow-hidden">
+      <StationInfo />
+      <Chat station={station} session={session} />
     </div>
   );
 };

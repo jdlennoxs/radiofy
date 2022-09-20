@@ -46,7 +46,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  Station       Station[]
+  stations      Station[]
+  messages      Message[]
 }
 
 model VerificationToken {
@@ -58,20 +59,39 @@ model VerificationToken {
 }
 
 model Station {
-  id          String    @id @default(cuid())
-  name        String
-  admin       User      @relation(references: [id], fields: [userId])
-  userId      String
-  lastPlayed  String?
-  isLive      Boolean?
-  Message     Message[]
+  id         String    @id @default(cuid())
+  name       String
+  admin      User      @relation(references: [id], fields: [userId])
+  userId     String
+  lastPlayed String?
+  isLive     Boolean?
+  messages   Message[]
 }
 
 model Message {
   stationId String
   id        String   @id @default(cuid())
-  Station   Station  @relation(fields: [stationId], references: [id])
-  created   DateTime
-  content   String
+  station   Station  @relation(fields: [stationId], references: [id])
+  created    DateTime
   type      String
+  track     Track?   @relation(fields: [trackId], references: [id])
+  chat      Chat?    @relation(fields: [chatId], references: [id])
+  trackId   String?
+  chatId    String?
+  sender    User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Track {
+  id         String    @id @default(cuid())
+  albumImage String
+  name       String
+  artists    String
+  Message    Message[]
+}
+
+model Chat {
+  id      String    @id @default(cuid())
+  body    String
+  Message Message[]
 }

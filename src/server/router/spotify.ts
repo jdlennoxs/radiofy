@@ -20,15 +20,62 @@ export const spotifyRouter = createRouter()
       return await ctx.spotify.getPlaylist(input.id);
     },
   })
-  .query("getCurrentTrack", {
+  .query("isSavedTrack", {
+    input: z.object({
+      id: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      return await ctx.spotify.containsMySavedTracks([input.id]);
+    },
+  })
+  .query("getPlaybackState", {
     async resolve({ ctx }) {
-      // spotifyApi.setAccessToken(ctx.session.accessToken);
-      return await ctx.spotify.getMyCurrentPlayingTrack();
+      return await ctx.spotify.getMyCurrentPlaybackState();
+    },
+  })
+  .query("search", {
+    input: z.string(),
+    async resolve({ ctx, input }) {
+      return await ctx.spotify.searchTracks(input);
     },
   })
   .mutation("startPlayback", {
-    input: z.string().array(),
+    input: z.string().array().optional(),
     async resolve({ ctx, input }) {
       return await ctx.spotify.play({ uris: input });
+    },
+  })
+  .mutation("stopPlayback", {
+    async resolve({ ctx }) {
+      return await ctx.spotify.pause();
+    },
+  })
+  .mutation("setDevice", {
+    input: z.string(),
+    async resolve({ ctx, input }) {
+      return await ctx.spotify.transferMyPlayback([input]);
+    },
+  })
+  .mutation("setVolume", {
+    input: z.number(),
+    async resolve({ ctx, input }) {
+      return await ctx.spotify.setVolume(input);
+    },
+  })
+  .mutation("addToSavedTracks", {
+    input: z.object({
+      id: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      console.log(input);
+      return await ctx.spotify.addToMySavedTracks([input.id]);
+    },
+  })
+  .mutation("removeFromSavedTracks", {
+    input: z.object({
+      id: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      return await ctx.spotify.removeFromMySavedTracks([input.id]);
     },
   });

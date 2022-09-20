@@ -16,8 +16,7 @@ const handler = applyWSSHandler({ wss, createContext, router: appRouter });
 
 wss.on("connection", (ws) => {
   console.log(`++ ws connection ${wss.clients.size}`);
-
-  ws.on("close", () => {
+  ws.once("close", () => {
     console.log(`-- ws connection ${wss.clients.size}`);
   });
 });

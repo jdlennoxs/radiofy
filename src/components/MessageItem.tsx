@@ -9,7 +9,7 @@ const MessageItem = ({
   session: Session;
 }) => {
   const isOwnMessage = message.sender.id === session.user?.id;
-  const styles = "mb-2 max-w-[80%] md:max-w-7/12 p-2 text-zinc-800";
+  const styles = "mb-2 max-w-[80%] md:max-w-7/12 p-2 mx-4 text-zinc-800";
   const liStyles = isOwnMessage
     ? styles.concat(" self-end")
     : styles.concat(" self-start");
@@ -19,7 +19,7 @@ const MessageItem = ({
         {!isOwnMessage && (
           <span className="text-xs">{message.sender.name}</span>
         )}
-        <p>{message.message}</p>
+        <p>{message.chat.body}</p>
       </div>
     </li>
   );
