@@ -3,7 +3,6 @@ import { createRouter } from "./context";
 
 export const dashboardRouter = createRouter().query("getOwned", {
   resolve({ ctx }) {
-    console.log(ctx.session.user);
     return ctx.prisma.station.findMany({
       where: {
         userId: ctx.session.user.id,

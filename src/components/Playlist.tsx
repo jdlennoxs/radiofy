@@ -3,13 +3,17 @@ import { trpc } from "../utils/trpc";
 import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 
-const Playlist = ({ addToQueue }) => {
-  const [selectedPlaylist, setSelectedPlaylist] = useState({});
+const Playlist = ({ setActiveResults }) => {
+  const [selectedPlaylist, setSelectedPlaylist] = useState({ id: "" });
   const { data: playlists } = trpc.useQuery(["spotify.getUserPlaylists"]);
-  const { data: playlist } = trpc.useQuery([
-    "spotify.getPlaylist",
-    { id: selectedPlaylist.id },
-  ]);
+  const { data: playlist } = trpc.useQuery(
+    ["spotify.getPlaylist", { id: selectedPlaylist.id }],
+    {
+      onSuccess(data) {
+        setActiveResults(data.body.tracks.items);
+      },
+    }
+  );
 
   const { mutateAsync: startPlayback } = trpc.useMutation(
     "spotify.startPlayback"
@@ -79,7 +83,7 @@ const Playlist = ({ addToQueue }) => {
         <ul>
           {playlist?.body.tracks.items.map((t) => (
             <li>
-              <button onClick={() => addToQueue(t.track)}>
+              <button onClick={() => {}}>
                 <div className="flex items-center space-x-4">
                   <img
                     className={"shadow-md rounded-lg h-12 w-12"}

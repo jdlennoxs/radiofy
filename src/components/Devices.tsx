@@ -1,5 +1,5 @@
 import { Listbox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
+import { ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import { MegaphoneIcon } from "@heroicons/react/24/outline";
 import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";

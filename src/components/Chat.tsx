@@ -16,6 +16,7 @@ const Chat = ({ station, session }: { station: any; session: Session }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>();
   const formRef = useRef(null);
+  const bottomRef = useRef(null);
 
   // replace with serverSideProps
   useEffect(() => {
@@ -35,6 +36,17 @@ const Chat = ({ station, session }: { station: any; session: Session }) => {
       });
     },
   });
+  trpc.useSubscription(["station.onPlay"], {
+    onNext(data) {
+      console.log(data);
+    },
+  });
+
+  useEffect(() => {
+    // 👇️ scroll to bottom every time messages change
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const [bbox, ref] = useRect();
   const [areaHeight, setAreaHeight] = useState(1);
   const handleTextUpdate = (event) => {
@@ -48,7 +60,6 @@ const Chat = ({ station, session }: { station: any; session: Session }) => {
   };
 
   const onSubmit = (e) => {
-    console.log(e);
     e.preventDefault();
     sendMessageMutation({ stationId: station.id, message });
     setMessage("");
@@ -85,7 +96,9 @@ const Chat = ({ station, session }: { station: any; session: Session }) => {
             ))}
           </ul>
         )}
+        <div ref={bottomRef} />
       </div>
+
       <div ref={ref} className="sticky top-[100vh] p-4 bg-zinc-900 w-full">
         <form ref={formRef} className="flex items-center" onSubmit={onSubmit}>
           <div className="flex-1">

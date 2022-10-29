@@ -4,14 +4,14 @@ import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { MinusSmallIcon } from "@heroicons/react/24/solid";
+import useQueueStore from "./QueueStore";
 
-interface QueueProps {
-  queue: Spotify.Track[];
-  setQueue: () => void;
-}
+const Queue = () => {
+  const queue = useQueueStore((state) => state.tracks);
+  const setQueue = useQueueStore((state) => state.reorderQueue);
+  const removeTrack = useQueueStore((state) => state.removeTrack);
 
-const Queue = ({ queue, setQueue }: QueueProps) => {
   const handleDrop = (droppedItem) => {
     // Ignore drop outside droppable container
     if (!droppedItem.destination) return;
@@ -70,8 +70,11 @@ const Queue = ({ queue, setQueue }: QueueProps) => {
                             </p>
                           </div>
                         </div>
-                        <button>
-                          <XMarkIcon
+                        <button
+                          onClick={() => removeTrack(t.id)}
+                          className="p-2 hover:bg-zinc-700 rounded-lg"
+                        >
+                          <MinusSmallIcon
                             className="h-5 w-5 text-zinc-100"
                             aria-hidden="true"
                           />

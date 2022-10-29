@@ -9,7 +9,7 @@ export const spotifyRouter = createRouter()
   })
   .query("getUserPlaylists", {
     async resolve({ ctx }) {
-      return await ctx.spotify.getUserPlaylists();
+      return await ctx.spotify.getUserPlaylists({ limit: 50 });
     },
   })
   .query("getPlaylist", {
@@ -67,7 +67,6 @@ export const spotifyRouter = createRouter()
       id: z.string(),
     }),
     async resolve({ ctx, input }) {
-      console.log(input);
       return await ctx.spotify.addToMySavedTracks([input.id]);
     },
   })

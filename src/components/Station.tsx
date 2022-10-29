@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 const Station = ({ station }) => {
@@ -24,9 +25,15 @@ const Station = ({ station }) => {
           !station.isLive &&
           "after:content-['*'] after:bg-gray-100 after:inline"
         }`}
-        onClick={() => router.push(`/stations/${station.id}`)}
+        onClick={() => router.push(`/station/${station.id}`)}
       >
-        <img className="-z-10" src={song?.album.images?.[0]?.url} alt="" />
+        <Image
+          className="-z-10"
+          height="176px"
+          width="176px"
+          src={song?.album.images?.[0]?.url}
+          alt=""
+        />
       </button>
       {station.isLive ? (
         <div>

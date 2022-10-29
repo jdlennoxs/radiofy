@@ -31,7 +31,6 @@ const queryParamString = new URLSearchParams(params);
 
 async function refreshAccessToken(token: JWT) {
   try {
-    console.log("Refreshing...");
     spotifyApi.setAccessToken(token.accessToken);
     spotifyApi.setRefreshToken(token.refreshToken);
     const { body: refreshedToken } = await spotifyApi.refreshAccessToken();
@@ -76,10 +75,12 @@ export const authOptions: NextAuthOptions = {
       }
       // Return previous token if the access token has not expired yet
       if (Date.now() < token.accessTokenExpires) {
+        console.log("access token valid");
         return token;
       }
 
       // Access token has expired, try to update it
+      console.log("access token expired");
       return refreshAccessToken(token);
     },
     async session({ session, token, user }) {

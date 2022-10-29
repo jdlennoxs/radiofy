@@ -1,9 +1,11 @@
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
+import useQueueStore from "./QueueStore";
 
 const Playback = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const queue = useQueueStore((state) => state.tracks);
   const { data: playbackState, isLoading } = trpc.useQuery(
     ["spotify.getPlaybackState"],
     {
@@ -14,12 +16,13 @@ const Playback = () => {
   );
   const { mutateAsync: play } = trpc.useMutation(["spotify.startPlayback"]);
   const { mutateAsync: pause } = trpc.useMutation(["spotify.stopPlayback"]);
+  const { mutateAsync: onPlay } = trpc.useMutation(["station.play"]);
 
   const togglePlayback = () => {
     if (isPlaying) {
       pause();
     } else {
-      play();
+      onPlay({ track: queue[0], stationId: "cl65lgwm10250qpl0li9m9zic" });
     }
     setIsPlaying(!isPlaying);
   };

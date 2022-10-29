@@ -7,6 +7,11 @@ export const sendMessageSchema = z.object({
   message: z.string(),
 });
 
+export const playTrackSchema = z.object({
+  stationId: z.string(),
+  track: z.any(),
+});
+
 const messageSchema = z.object({
   id: z.string(),
   chat: z.object({ body: z.string() }),
