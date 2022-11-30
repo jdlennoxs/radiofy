@@ -59,20 +59,30 @@ model VerificationToken {
 }
 
 model Station {
-  id         String    @id @default(cuid())
-  name       String
-  admin      User      @relation(references: [id], fields: [userId])
-  userId     String
-  lastPlayed String?
-  isLive     Boolean?
-  messages   Message[]
+  id              String           @id @default(cuid())
+  name            String
+  admin           User             @relation(references: [id], fields: [userId])
+  userId          String
+  playbackContext PlaybackContext?
+  messages        Message[]
+}
+
+model PlaybackContext {
+  stationId String
+  station   Station  @relation(fields: [stationId], references: [id])
+  trackId   String?
+  track     Track?   @relation(fields: [trackId], references: [id])
+  startTime Int?
+  isPlaying Boolean?
+
+  @@unique([stationId])
 }
 
 model Message {
   stationId String
   id        String   @id @default(cuid())
   station   Station  @relation(fields: [stationId], references: [id])
-  created    DateTime
+  created   DateTime
   type      String
   track     Track?   @relation(fields: [trackId], references: [id])
   chat      Chat?    @relation(fields: [chatId], references: [id])
@@ -83,11 +93,12 @@ model Message {
 }
 
 model Track {
-  id         String    @id @default(cuid())
-  albumImage String
-  name       String
-  artists    String
-  Message    Message[]
+  id              String            @id @default(cuid())
+  albumImage      String
+  name            String
+  artists         String
+  Message         Message[]
+  PlaybackContext PlaybackContext[]
 }
 
 model Chat {

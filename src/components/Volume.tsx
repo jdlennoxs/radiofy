@@ -22,7 +22,7 @@ const Volume = () => {
     () => {
       !isLoading && setDeviceVolume(volume);
     },
-    [debouncedVolume] // Only call effect if debounced search term changes
+    [debouncedVolume, isLoading, setDeviceVolume, volume] // Only call effect if debounced search term changes
   );
 
   return (

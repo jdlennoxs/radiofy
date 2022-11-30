@@ -7,6 +7,7 @@ import PlaylistBar from "./PlaylistBar";
 import Queue from "./Queue";
 import useQueueStore from "./QueueStore";
 import Results from "./Results";
+import Search from "./Search";
 
 const StationInfo = () => {
   // const [queue, setQueue] = useState<any>([]);
@@ -29,6 +30,7 @@ const StationInfo = () => {
     <div className="flex-col mx-auto w-full lg:w-1/2 flex bg-zinc-900">
       <Queue />
       <div className="sticky top-[100vh] flex h-1/2 ">
+        {/* <Search setActiveResults={setActiveResults} /> */}
         <PlaylistBar setActiveResults={setActiveResults} />
         <Results
           tracks={activeResults}

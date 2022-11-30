@@ -8,7 +8,6 @@ import {
 import { Events } from "../../constants/events";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
-import { spotifyRouter } from "./spotify";
 export const stationRouter = createRouter()
   .query("getStation", {
     input: z.object({
@@ -20,6 +19,7 @@ export const stationRouter = createRouter()
           id: input.id,
         },
         include: {
+          playbackContext: true,
           messages: {
             include: {
               chat: true,
@@ -143,6 +143,16 @@ export const stationRouter = createRouter()
             },
           },
         });
+        await prisma.playbackContext.update({
+          where: {
+            stationId: input.stationId,
+          },
+          data: {
+            trackId: track.trackId,
+            startTime: Math.floor(Date.now() / 1000),
+            isPlaying: true,
+          },
+        });
         ctx.eventEmitter.emit(Events.PLAY_TRACK, track.trackId);
         ctx.eventEmitter.emit(Events.SEND_MESSAGE, track);
       }
@@ -152,7 +162,7 @@ export const stationRouter = createRouter()
     resolve({ ctx }) {
       return new trpc.Subscription<any>((emit) => {
         function onPlay(data: any) {
-          emit.data(data);
+          emit.data("goes to front end");
           ctx.spotify.play({ uris: [`spotify:track:${data}`] });
         }
 

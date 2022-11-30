@@ -7,6 +7,11 @@ export const dashboardRouter = createRouter().query("getOwned", {
       where: {
         userId: ctx.session.user.id,
       },
+      include: {
+        playbackContext: {
+          select: { isPlaying: true, track: true },
+        },
+      },
     });
   },
 });
