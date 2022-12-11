@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import type { InferGetServerSidePropsType, NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
@@ -6,7 +6,6 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Station from "../components/Station";
 
 const Home: NextPage = () => {
-  const { data: devices } = trpc.useQuery(["spotify.getDevices"]);
   const { data: myStations } = trpc.useQuery(["dashboard.getOwned"]);
   // const { data: stations } = trpc.useQuery(["stations.getRecent"]);
   const { data: session } = useSession();
@@ -24,7 +23,7 @@ const Home: NextPage = () => {
         {session ? (
           <div className="flex gap-10">
             {myStations?.map((station) => (
-              <Station station={station} />
+              <Station station={station} devices={devices} />
             ))}
           </div>
         ) : (

@@ -12,7 +12,14 @@ import Playback from "./Playback";
 import EventEmitter from "events";
 import { useRect } from "../hooks/useRect";
 
-const Chat = ({ station, session }: { station: any; session: Session }) => {
+const Chat = ({
+  station,
+  session,
+  devices,
+}: {
+  station: any;
+  session: Session;
+}) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>();
   const formRef = useRef(null);
@@ -121,7 +128,7 @@ const Chat = ({ station, session }: { station: any; session: Session }) => {
           </button>
         </form>
         <div className="flex justify-between md:mr-14">
-          <Devices />
+          <Devices devices={devices} />
           <Playback />
           <Volume />
         </div>

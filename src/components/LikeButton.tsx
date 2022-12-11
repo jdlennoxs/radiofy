@@ -24,7 +24,9 @@ const LikeButton = ({ song }) => {
         ]);
 
         // Optimistically update to the new value
-        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], true);
+        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], {
+          body: [true],
+        });
 
         // Return a context with the previous and new todo
         return { previousState, song };
@@ -56,7 +58,9 @@ const LikeButton = ({ song }) => {
         ]);
 
         // Optimistically update to the new value
-        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], false);
+        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], {
+          body: [false],
+        });
 
         // Return a context with the previous and new todo
         return { previousState, song };
@@ -76,7 +80,7 @@ const LikeButton = ({ song }) => {
   );
 
   const toggleSaved = () => {
-    if (isSaved) {
+    if (isSaved?.body[0]) {
       removeFromSaved(song);
     } else {
       addToSaved(song);
@@ -88,7 +92,7 @@ const LikeButton = ({ song }) => {
       className="flex text-lime-900 p-4 rounded-full ml-4"
       onClick={toggleSaved}
     >
-      {isSaved ? (
+      {isSaved?.body[0] ? (
         <span className="flex items-center text-green-600">
           <HeartFilled className="h-6 w-6" aria-hidden="true" />
         </span>
