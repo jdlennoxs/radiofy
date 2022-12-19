@@ -5,6 +5,8 @@ import { spotifyApi } from "../../../server/spotify/client";
 // Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "../../../server/db/client";
+
+import { env } from "../../../env/server.mjs";
 import { JWT } from "next-auth/jwt";
 
 const scopes = [
@@ -55,8 +57,8 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID || "",
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET || "",
+      clientId: env.SPOTIFY_CLIENT_ID || "",
+      clientSecret: env.SPOTIFY_CLIENT_SECRET || "",
       authorization: `https://accounts.spotify.com/authorize?${queryParamString.toString()}`,
     }),
   ],

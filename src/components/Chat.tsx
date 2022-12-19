@@ -32,9 +32,8 @@ const Chat = ({
     }
   }, [station]);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
+  const { mutateAsync: sendMessageMutation } = trpc.station.sendMessage.useMutation(
+);
 
   trpc.useSubscription(["station.onSendMessage", { stationId: station?.id }], {
     onNext: (message) => {

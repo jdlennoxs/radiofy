@@ -1,19 +1,23 @@
-import { createRouter } from "./context";
+import { observable } from "@trpc/server/observable";
+import { z } from "zod";
+import { Events } from "../../../constants/events";
 import {
   Message,
   playTrackSchema,
   sendMessageSchema,
   stationSubscriptionSchema,
-} from "../../constants/schema";
-import { Events } from "../../constants/events";
-import * as trpc from "@trpc/server";
-import { z } from "zod";
-export const stationRouter = createRouter()
-  .query("getStation", {
-    input: z.object({
-      id: z.string(),
-    }),
-    async resolve({ input, ctx }) {
+} from "../../../constants/schema";
+
+import { publicProcedure, protectedProcedure, router } from "../trpc";
+
+export const stationRouter = router({
+  getStation: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
       return ctx.prisma.station.findUnique({
         where: {
           id: input.id,
@@ -36,11 +40,10 @@ export const stationRouter = createRouter()
           },
         },
       });
-    },
-  })
-  .mutation("send-message", {
-    input: sendMessageSchema,
-    async resolve({ ctx, input }) {
+    }),
+  "send-message": protectedProcedure
+    .input(sendMessageSchema)
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.session?.user?.id as string;
       if (userId) {
         const message = await prisma?.message.create({
@@ -77,12 +80,11 @@ export const stationRouter = createRouter()
 
         ctx.eventEmitter.emit(Events.SEND_MESSAGE, message);
       }
-    },
-  })
-  .subscription("onSendMessage", {
-    input: stationSubscriptionSchema,
-    resolve({ ctx, input }) {
-      return new trpc.Subscription<Message>((emit) => {
+    }),
+  onSendMessage: publicProcedure
+    .input(stationSubscriptionSchema)
+    .subscription(({ ctx, input }) => {
+      return observable<Message>((emit) => {
         function onMessage(data: Message) {
           if (input.stationId === data.stationId) {
             emit.data(data);
@@ -95,11 +97,10 @@ export const stationRouter = createRouter()
           ctx.eventEmitter.off(Events.SEND_MESSAGE, onMessage);
         };
       });
-    },
-  })
-  .mutation("play", {
-    input: playTrackSchema,
-    async resolve({ ctx, input }) {
+    }),
+  play: publicProcedure
+    .input(playTrackSchema)
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.session?.user?.id as string;
       if (userId) {
         const track = await prisma?.message.create({
@@ -156,21 +157,19 @@ export const stationRouter = createRouter()
         ctx.eventEmitter.emit(Events.PLAY_TRACK, track.trackId);
         ctx.eventEmitter.emit(Events.SEND_MESSAGE, track);
       }
-    },
-  })
-  .subscription("onPlay", {
-    resolve({ ctx }) {
-      return new trpc.Subscription<any>((emit) => {
-        function onPlay(data: any) {
-          emit.data("goes to front end");
-          ctx.spotify.play({ uris: [`spotify:track:${data}`] });
-        }
+    }),
+  onPlay: publicProcedure.subscription(({ ctx }) => {
+    return new trpc.Subscription<any>((emit) => {
+      function onPlay(data: any) {
+        emit.data("goes to front end");
+        ctx.spotify.play({ uris: [`spotify:track:${data}`] });
+      }
 
-        ctx.eventEmitter.on(Events.PLAY_TRACK, onPlay);
+      ctx.eventEmitter.on(Events.PLAY_TRACK, onPlay);
 
-        return () => {
-          ctx.eventEmitter.off(Events.PLAY_TRACK, onPlay);
-        };
-      });
-    },
-  });
+      return () => {
+        ctx.eventEmitter.off(Events.PLAY_TRACK, onPlay);
+      };
+    });
+  }),
+});

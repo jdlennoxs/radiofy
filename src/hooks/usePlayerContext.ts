@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 
 export const usePlayerContext = () => {
-  const { data: devices } = trpc.useQuery(["spotify.getDevices"]);
+  const { data: devices } = trpc.spotify.getDevices.useQuery();
   const [activePlayer, setActivePlayer] = useState(null);
 
   useEffect(() => {

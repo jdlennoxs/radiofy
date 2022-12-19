@@ -11,12 +11,9 @@ const Station: NextPage = () => {
   const { query } = useRouter();
 
   const stationId = query.stationId as string;
-  const { data: station } = trpc.useQuery([
-    "station.getStation",
-    {
-      id: stationId,
-    },
-  ]);
+  const { data: station } = trpc.station.getStation.useQuery({
+            id: stationId,
+          });
 
   useEffect(() => {
     window.scrollTo({

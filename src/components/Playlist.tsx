@@ -5,19 +5,18 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 
 const Playlist = ({ setActiveResults }) => {
   const [selectedPlaylist, setSelectedPlaylist] = useState({ id: "" });
-  const { data: playlists } = trpc.useQuery(["spotify.getUserPlaylists"]);
-  const { data: playlist } = trpc.useQuery(
-    ["spotify.getPlaylist", { id: selectedPlaylist.id }],
-    {
-      onSuccess(data) {
-        setActiveResults(data.body.tracks.items);
-      },
-    }
+  const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
+  const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
+    { id: selectedPlaylist.id },
+      {
+          onSuccess(data) {
+              setActiveResults(data.body.tracks.items);
+          },
+      }
   );
 
-  const { mutateAsync: startPlayback } = trpc.useMutation(
-    "spotify.startPlayback"
-  );
+  const { mutateAsync: startPlayback } = trpc.spotify.startPlayback.useMutation(
+);
 
   return (
     <div className=" flex-row">
