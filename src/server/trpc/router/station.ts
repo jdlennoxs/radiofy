@@ -11,7 +11,7 @@ import {
 import { publicProcedure, protectedProcedure, router } from "../trpc";
 
 export const stationRouter = router({
-  getStation: publicProcedure
+  getStation: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -41,7 +41,7 @@ export const stationRouter = router({
         },
       });
     }),
-  "send-message": protectedProcedure
+  sendMessage: protectedProcedure
     .input(sendMessageSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session?.user?.id as string;
@@ -86,6 +86,7 @@ export const stationRouter = router({
     .subscription(({ ctx, input }) => {
       return observable<Message>((emit) => {
         function onMessage(data: Message) {
+          console.log("yes");
           if (input.stationId === data.stationId) {
             emit.data(data);
           }
@@ -98,7 +99,7 @@ export const stationRouter = router({
         };
       });
     }),
-  play: publicProcedure
+  play: protectedProcedure
     .input(playTrackSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session?.user?.id as string;
@@ -159,7 +160,7 @@ export const stationRouter = router({
       }
     }),
   onPlay: publicProcedure.subscription(({ ctx }) => {
-    return new trpc.Subscription<any>((emit) => {
+    return observable<any>((emit) => {
       function onPlay(data: any) {
         emit.data("goes to front end");
         ctx.spotify.play({ uris: [`spotify:track:${data}`] });

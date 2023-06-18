@@ -5,7 +5,7 @@ const Station = ({ station }) => {
     <div className="flex flex-col gap-y-4">
       <h3>{station.name}</h3>
       <Link href={`/station/${station.id}`}>
-        <a
+        <div
           className={`h-44 w-44 shadow-md rounded-lg overflow-hidden ${
             !station.isLive &&
             "after:content-['*'] after:bg-gray-100 after:inline"
@@ -13,12 +13,12 @@ const Station = ({ station }) => {
         >
           <Image
             className="-z-10"
-            height="176px"
-            width="176px"
+            height="176"
+            width="176"
             src={station.playbackContext?.track.albumImage}
             alt=""
           />
-        </a>
+        </div>
       </Link>
 
       <div>

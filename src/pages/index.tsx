@@ -6,9 +6,8 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Station from "../components/Station";
 
 const Home: NextPage = () => {
-  // const { data: myStations } = trpc.dashboard.getOwned.useQuery();
+  const { data: myStations } = trpc.dashboard.getOwned.useQuery();
   const { data: session } = useSession();
-  const router = useRouter();
 
   return (
     <>
@@ -21,9 +20,9 @@ const Home: NextPage = () => {
       <div className="w-screen min-h-screen flex flex-col justify-center items-center p-4 overflow-y-scroll">
         {session ? (
           <div className="flex gap-10">
-            {/* {myStations?.map((station) => (
-              <Station station={station} devices={devices} />
-            ))} */}
+            {myStations?.map((station) => (
+              <Station station={station} />
+            ))}
           </div>
         ) : (
           <>

@@ -4,20 +4,24 @@ import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
-const PlaylistBar = ({ setActiveResults }) => {
+const PlaylistBar = ({
+  setActiveResults,
+}: {
+  setActiveResults: (a: SpotifyApi.TrackObjectSimplified) => void;
+}) => {
   const [selectedPlaylist, setSelectedPlaylist] = useState({});
   const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
   const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
     { id: selectedPlaylist.id },
-      {
-          onSuccess(data) {
-              setActiveResults(data.body.tracks.items);
-          },
-      }
+    {
+      onSuccess(data) {
+        setActiveResults(data.body.tracks.items);
+      },
+    }
   );
 
-  const { mutateAsync: startPlayback } = trpc.spotify.startPlayback.useMutation(
-);
+  const { mutateAsync: startPlayback } =
+    trpc.spotify.startPlayback.useMutation();
 
   return (
     <ul className="flex flex-col overflow-scroll w-60 lg:w-72">

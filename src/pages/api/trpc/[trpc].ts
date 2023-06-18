@@ -2,10 +2,10 @@ import { createNextApiHandler } from "@trpc/server/adapters/next";
 
 import { env } from "../../../env/server.mjs";
 import { createContext } from "../../../server/trpc/context";
-import { appRouter } from "../../../server/trpc/router/_app";
+import { AppRouter, appRouter } from "../../../server/trpc/router/_app";
 
 // export API handler
-export default createNextApiHandler({
+export default createNextApiHandler<AppRouter>({
   router: appRouter,
   createContext,
   onError:
@@ -14,4 +14,7 @@ export default createNextApiHandler({
           console.error(`❌ tRPC failed on ${path}: ${error}`);
         }
       : undefined,
+  batching: {
+    enabled: true,
+  },
 });

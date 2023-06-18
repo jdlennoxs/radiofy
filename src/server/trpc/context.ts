@@ -6,7 +6,6 @@ import { type Session } from "next-auth";
 import { getSession } from "next-auth/react";
 import ws from "ws";
 import EventEmitter from "events";
-import { getServerAuthSession } from "../common/get-server-auth-session";
 
 import { prisma } from "../db/client";
 import { spotifyApi as spotify } from "../spotify/client";
@@ -38,7 +37,7 @@ export const createContext = async (
     | trpcNext.CreateNextContextOptions
     | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
 ) => {
-  const session = await getServerAuthSession({ req, res });
+  const session = await getSession(opts);
 
   spotify.setAccessToken(session.accessToken);
 
