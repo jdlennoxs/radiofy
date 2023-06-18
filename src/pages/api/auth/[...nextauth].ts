@@ -36,11 +36,10 @@ async function refreshAccessToken(token: JWT) {
     spotifyApi.setAccessToken(token.accessToken);
     spotifyApi.setRefreshToken(token.refreshToken);
     const { body: refreshedToken } = await spotifyApi.refreshAccessToken();
-
     return {
       ...token,
       accessToken: refreshedToken.access_token,
-      accessTokenExpires: Date.now() + refreshedToken?.expires_at * 1000,
+      accessTokenExpires: Date.now() + refreshedToken?.expires_in * 1000,
       refreshToken: refreshedToken.refresh_token ?? token.refreshToken,
     };
   } catch (error) {
@@ -83,7 +82,7 @@ export const authOptions: NextAuthOptions = {
 
       // Access token has expired, try to update it
       console.log("access token expired");
-      return refreshAccessToken(token);
+      return await refreshAccessToken(token);
     },
     async session({ session, token, user }) {
       session.accessToken = token.accessToken;

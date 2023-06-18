@@ -12,11 +12,12 @@ export const spotifyRouter = router({
   getPlaylist: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      return await ctx.spotify.getPlaylist(input.id);
+      if (input.id) return await ctx.spotify.getPlaylist(input.id);
+      return [];
     }),
   isSavedTrack: protectedProcedure
     .input(
@@ -36,6 +37,7 @@ export const spotifyRouter = router({
   startPlayback: protectedProcedure
     .input(z.string().array().optional())
     .mutation(async ({ ctx, input }) => {
+      console.log(input);
       return await ctx.spotify.play({ uris: input });
     }),
   stopPlayback: protectedProcedure.mutation(async ({ ctx }) => {

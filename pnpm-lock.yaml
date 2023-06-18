@@ -8,7 +8,7 @@ specifiers:
   '@radix-ui/react-select': ^1.1.2
   '@tanstack/react-query': ^4.19.1
   '@trpc/client': ^10.4.3
-  '@trpc/next': ^10.4.3
+  '@trpc/next': '10.5'
   '@trpc/react-query': ^10.4.3
   '@trpc/server': ^10.4.3
   '@types/node': 18.0.0
@@ -51,7 +51,7 @@ dependencies:
   '@radix-ui/react-select': 1.1.2_twyhzqqpkwvvgrmyeapdo6i4my
   '@tanstack/react-query': 4.19.1_biqbaboplfbrettd7655fr4n2y
   '@trpc/client': 10.4.3_@trpc+server@10.4.3
-  '@trpc/next': 10.4.3_diwvdd2upbq3oxpk4kmtk7r6my
+  '@trpc/next': 10.5.0_diwvdd2upbq3oxpk4kmtk7r6my
   '@trpc/react-query': 10.4.3_x72ucuwg27nhluiflrpycjcdya
   '@trpc/server': 10.4.3
   '@types/spotify-web-playback-sdk': 0.1.15
@@ -617,13 +617,13 @@ packages:
       '@trpc/server': 10.4.3
     dev: false
 
-  /@trpc/next/10.4.3_diwvdd2upbq3oxpk4kmtk7r6my:
-    resolution: {integrity: sha512-H4sM3lrtA2seFFkgXcW3ZQLCqGS7YqJNYDQx8FOlvcoH+klmQ+UNNgurdP2R/i50nGFwc4aN9kENrsvq0xfH5A==}
+  /@trpc/next/10.5.0_diwvdd2upbq3oxpk4kmtk7r6my:
+    resolution: {integrity: sha512-beWvrdHZTV7kx4XeLlHKB29EC6VWkkPykWN1eoPkSTeAYMqEIpl46Xgdj6UfiLmuq8yjAi888BahGNdmTMqFZQ==}
     peerDependencies:
       '@tanstack/react-query': ^4.3.8
-      '@trpc/client': 10.4.3
+      '@trpc/client': 10.5.0
       '@trpc/react-query': ^10.0.0-proxy-beta.21
-      '@trpc/server': 10.4.3
+      '@trpc/server': 10.5.0
       next: '*'
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
