@@ -1,4 +1,4 @@
-import { createRouter } from "./context";
+import { createRouter } from "../router/context";
 import { z } from "zod";
 
 export const spotifyRouter = createRouter()

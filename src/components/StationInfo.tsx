@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import useDebounce from "../hooks/useDebounce";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 import Devices from "./Devices";
 import Playlist from "./Playlist";
 import PlaylistBar from "./PlaylistBar";
@@ -15,9 +15,8 @@ const StationInfo = () => {
   const queue = useQueueStore((state) => state.tracks);
   const setQueue = useQueueStore((state) => state.addTrack);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
+  const { mutateAsync: sendMessageMutation } =
+    trpc.station.sendMessage.useMutation();
   // , {
   // onNext: (message) => {
   //   setMessages((messages) => {

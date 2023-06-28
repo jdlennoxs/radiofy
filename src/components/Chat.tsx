@@ -1,6 +1,6 @@
 import { Message } from "../constants/schema";
 import { useEffect, useRef, useState } from "react";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 import TrackUpdate from "./TrackUpdate";
 import MessageItem from "./MessageItem";
 import { Session } from "next-auth";
@@ -32,9 +32,8 @@ const Chat = ({
     }
   }, [station]);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
+  const { mutateAsync: sendMessageMutation } =
+    trpc.station.sendMessage.useMutation();
 
   trpc.useSubscription(["station.onSendMessage", { stationId: station?.id }], {
     onNext: (message) => {

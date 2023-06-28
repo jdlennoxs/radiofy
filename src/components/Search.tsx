@@ -1,12 +1,12 @@
 import { SpeakerWaveIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import useDebounce from "../hooks/useDebounce";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 
 const Search = () => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 50);
-  const { data: search } = trpc.useQuery(["spotify.search", query]);
+  const { data: search } = trpc.spotify.search.useQuery(query);
 
   //   useEffect(
   //     () => {

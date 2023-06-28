@@ -1,83 +1,81 @@
 import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilled } from "@heroicons/react/24/solid";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 
 const LikeButton = ({ song }) => {
   const utils = trpc.useContext();
-  const { data: isSaved } = trpc.useQuery([
-    "spotify.isSavedTrack",
-    {
-      id: song.id,
-    },
-  ]);
-  const { mutateAsync: addToSaved } = trpc.useMutation(
-    ["spotify.addToSavedTracks"],
+  const { data: isSaved } = trpc.spotify.isSavedTrack.useQuery({
+    id: song.id,
+  });
+  const { mutateAsync: addToSaved } = trpc.spotify.addToSavedTracks.useMutation(
     {
       onMutate: async (song) => {
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-        await utils.cancelQuery(["spotify.isSavedTrack", { id: song.id }]);
+        await utils.spotify.isSavedTrack.cancel({ id: song.id });
 
         // Snapshot the previous value
-        const previousState = utils.getQueryData([
-          "spotify.isSavedTrack",
-          { id: song.id },
-        ]);
+        const previousState = utils.spotify.isSavedTrack.getData({
+          id: song.id,
+        });
 
         // Optimistically update to the new value
-        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], {
-          body: [true],
-        });
+        utils.spotify.isSavedTrack.setData(
+          { id: song.id },
+          {
+            body: [true],
+          }
+        );
 
         // Return a context with the previous and new todo
         return { previousState, song };
       },
       // If the mutation fails, use the context we returned above
       onError: (err, song, context) => {
-        utils.setQueryData(
-          ["spotify.isSavedTrack", { id: context.song.id }],
+        utils.spotify.isSavedTrack.setData(
+          { id: context.song.id },
           context.previousState
         );
       },
       // Always refetch after error or success:
       onSettled: (song) => {
-        utils.invalidateQueries(["spotify.isSavedTrack", { id: song.id }]);
+        utils.spotify.isSavedTrack.invalidate({ id: song.id });
       },
     }
   );
-  const { mutateAsync: removeFromSaved } = trpc.useMutation(
-    ["spotify.removeFromSavedTracks"],
-    {
+  const { mutateAsync: removeFromSaved } =
+    trpc.spotify.removeFromSavedTracks.useMutation({
       onMutate: async (song) => {
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-        await utils.cancelQuery(["spotify.isSavedTrack", { id: song.id }]);
+        await utils.spotify.isSavedTrack.cancel({ id: song.id });
 
         // Snapshot the previous value
-        const previousState = utils.getQueryData([
-          "spotify.isSavedTrack",
-          { id: song.id },
-        ]);
+        const previousState = utils.spotify.isSavedTrack.getData({
+          id: song.id,
+        });
 
         // Optimistically update to the new value
-        utils.setQueryData(["spotify.isSavedTrack", { id: song.id }], {
-          body: [false],
-        });
+        utils.spotify.isSavedTrack.setData(
+          { id: song.id },
+          {
+            body: [false],
+          }
+        );
 
         // Return a context with the previous and new todo
         return { previousState, song };
       },
       // If the mutation fails, use the context we returned above
       onError: (err, song, context) => {
-        utils.setQueryData(
-          ["spotify.isSavedTrack", { id: context.song.id }],
+        utils.spotify.isSavedTrack.setData(
+          { id: context.song.id },
           context.previousState
         );
       },
       // Always refetch after error or success:
       onSettled: (song) => {
-        utils.invalidateQueries(["spotify.isSavedTrack", { id: song.id }]);
+        utils.spotify.isSavedTrack.invalidate({ id: song.id });
       },
-    }
-  );
+    });
 
   const toggleSaved = () => {
     if (isSaved?.body[0]) {

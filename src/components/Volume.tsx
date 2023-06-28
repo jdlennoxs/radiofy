@@ -1,22 +1,23 @@
 import { SpeakerWaveIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import useDebounce from "../hooks/useDebounce";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 
 const Volume = () => {
-  const { data: devices, isLoading } = trpc.useQuery(["spotify.getDevices"], {
-    onSuccess(data) {
-      const deviceVolume = data?.body.devices.find(
-        (d) => d.is_active
-      )?.volume_percent;
-      if (deviceVolume && deviceVolume !== volume) setVolume(deviceVolume);
-    },
-  });
+  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery(
+    undefined,
+    {
+      onSuccess(data) {
+        const deviceVolume = data?.body.devices.find(
+          (d) => d.is_active
+        )?.volume_percent;
+        if (deviceVolume && deviceVolume !== volume) setVolume(deviceVolume);
+      },
+    }
+  );
   const [volume, setVolume] = useState(50);
   const debouncedVolume = useDebounce(volume, 50);
-  const { mutateAsync: setDeviceVolume } = trpc.useMutation([
-    "spotify.setVolume",
-  ]);
+  const { mutateAsync: setDeviceVolume } = trpc.spotify.setVolume.useMutation();
 
   useEffect(
     () => {

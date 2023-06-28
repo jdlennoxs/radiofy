@@ -1,7 +1,7 @@
 import { FireIcon as FireOutline } from "@heroicons/react/24/outline";
 import { FireIcon as FireFilled } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 
 const FireButton = ({ song }) => {
   const [isFire, setIsFire] = useState(false);

@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { trpc } from "../../utils/trpc";
+import { api } from "../../utils/api";
 import Chat from "../../components/Chat";
 import StationInfo from "../../components/StationInfo";
 
@@ -11,12 +11,9 @@ const Station: NextPage = () => {
   const { query } = useRouter();
 
   const stationId = query.stationId as string;
-  const { data: station } = trpc.useQuery([
-    "station.getStation",
-    {
-      id: stationId,
-    },
-  ]);
+  const { data: station } = api.station.getStation.useQuery({
+    id: stationId,
+  });
 
   useEffect(() => {
     window.scrollTo({
@@ -36,7 +33,7 @@ const Station: NextPage = () => {
   return (
     <div className="flex sm:flex-row items-stretch h-screen overflow-hidden">
       <StationInfo />
-      <Chat station={station} session={session} />
+      {/* <Chat station={station} session={session} /> */}
     </div>
   );
 };

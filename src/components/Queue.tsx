@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";

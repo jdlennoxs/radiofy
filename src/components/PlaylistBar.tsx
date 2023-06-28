@@ -1,14 +1,14 @@
 import { Fragment, useState } from "react";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/api";
 import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
 const PlaylistBar = ({ setActiveResults }) => {
   const [selectedPlaylist, setSelectedPlaylist] = useState({});
-  const { data: playlists } = trpc.useQuery(["spotify.getUserPlaylists"]);
-  const { data: playlist } = trpc.useQuery(
-    ["spotify.getPlaylist", { id: selectedPlaylist.id }],
+  const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
+  const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
+    { id: selectedPlaylist.id },
     {
       onSuccess(data) {
         setActiveResults(data.body.tracks.items);
@@ -16,9 +16,8 @@ const PlaylistBar = ({ setActiveResults }) => {
     }
   );
 
-  const { mutateAsync: startPlayback } = trpc.useMutation(
-    "spotify.startPlayback"
-  );
+  const { mutateAsync: startPlayback } =
+    trpc.spotify.startPlayback.useMutation();
 
   return (
     <ul className="flex flex-col overflow-scroll w-60 lg:w-72">
