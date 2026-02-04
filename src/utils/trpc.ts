@@ -17,7 +17,7 @@ const getBaseUrl = () => {
   if (process.browser) return ""; // Browser should use current path
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
 
-  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+  return `http://127.0.0.1:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
 const getEndingLink = () => {
@@ -30,7 +30,7 @@ const getEndingLink = () => {
   }
 
   const client = createWSClient({
-    url: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001",
+    url: process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:3001",
   });
 
   return splitLink({

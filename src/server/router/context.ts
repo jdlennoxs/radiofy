@@ -4,6 +4,7 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import EventEmitter from "events";
 import { IncomingMessage } from "http";
+import { getServerSession } from "next-auth/next";
 import { getSession } from "next-auth/react";
 import { WebSocket } from "ws";
 import superjson from "superjson";
@@ -22,7 +23,14 @@ export const createContext = async (
   const req = opts?.req;
   const res = opts?.res;
 
-  const session = req && res ? await getSession({ req }) : null;
+  let session = null;
+  if (req && res) {
+    if ("setHeader" in (res as any)) {
+      session = await getServerSession(req as any, res as any, nextAuthOptions);
+    } else {
+      session = await getSession({ req });
+    }
+  }
 
   const accessToken = (session as { accessToken?: string } | null)
     ?.accessToken;

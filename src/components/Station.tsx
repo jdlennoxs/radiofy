@@ -4,21 +4,19 @@ const Station = ({ station }) => {
   return (
     <div className="flex flex-col gap-y-4">
       <h3>{station.name}</h3>
-      <Link href={`/station/${station.id}`}>
-        <a
-          className={`h-44 w-44 shadow-md rounded-lg overflow-hidden ${
-            !station.isLive &&
-            "after:content-['*'] after:bg-gray-100 after:inline"
+      <Link
+        href={`/station/${station.id}`}
+        className={`h-44 w-44 shadow-md rounded-lg overflow-hidden ${!station.isLive &&
+          "after:content-['*'] after:bg-gray-100 after:inline"
           }`}
-        >
-          <Image
-            className="-z-10"
-            height={176}
-            width={176}
-            src={station.playbackContext?.track.albumImage}
-            alt=""
-          />
-        </a>
+      >
+        <Image
+          className="-z-10"
+          height={176}
+          width={176}
+          src={station.playbackContext?.track.albumImage}
+          alt=""
+        />
       </Link>
 
       <div>
