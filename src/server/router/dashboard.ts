@@ -4,7 +4,7 @@ export const dashboardRouter = createRouter({
   getOwned: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.station.findMany({
       where: {
-        userId: ctx.session.user.id,
+        userId: (ctx.session.user as { id?: string }).id,
       },
       include: {
         playbackContext: {

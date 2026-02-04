@@ -1,16 +1,20 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { trpc } from "../utils/trpc";
-import { Listbox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
-import Link from "next/link";
+import { CheckIcon } from "@heroicons/react/24/solid";
+
+type PlaylistOption = {
+  id: string;
+  name: string;
+};
 
 const PlaylistBar = ({ setActiveResults }) => {
-  const [selectedPlaylist, setSelectedPlaylist] = useState({});
+  const [selectedPlaylist, setSelectedPlaylist] =
+    useState<PlaylistOption | null>(null);
   const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
   trpc.spotify.getPlaylist.useQuery(
-    { id: selectedPlaylist.id },
+    { id: selectedPlaylist?.id ?? "" },
     {
-      enabled: Boolean(selectedPlaylist.id),
+      enabled: Boolean(selectedPlaylist?.id),
       onSuccess(data) {
         setActiveResults(data.body.tracks.items);
       },

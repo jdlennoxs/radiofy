@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth, { type NextAuthOptions, type Session } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { spotifyApi } from "../../../server/spotify/client";
 
@@ -31,14 +31,14 @@ const queryParamString = new URLSearchParams(params);
 
 async function refreshAccessToken(token: JWT) {
   try {
-    spotifyApi.setAccessToken(token.accessToken);
-    spotifyApi.setRefreshToken(token.refreshToken);
+    spotifyApi.setAccessToken(token.accessToken as string);
+    spotifyApi.setRefreshToken(token.refreshToken as string);
     const { body: refreshedToken } = await spotifyApi.refreshAccessToken();
 
     return {
       ...token,
       accessToken: refreshedToken.access_token,
-      accessTokenExpires: Date.now() + refreshedToken?.expires_at * 1000,
+      accessTokenExpires: Date.now() + refreshedToken.expires_in * 1000,
       refreshToken: refreshedToken.refresh_token ?? token.refreshToken,
     };
   } catch (error) {
@@ -74,7 +74,8 @@ export const authOptions: NextAuthOptions = {
         };
       }
       // Return previous token if the access token has not expired yet
-      if (Date.now() < token.accessTokenExpires) {
+      const accessTokenExpires = Number(token.accessTokenExpires);
+      if (!Number.isNaN(accessTokenExpires) && Date.now() < accessTokenExpires) {
         console.log("access token valid");
         return token;
       }
@@ -84,12 +85,18 @@ export const authOptions: NextAuthOptions = {
       return refreshAccessToken(token);
     },
     async session({ session, token, user }) {
-      session.accessToken = token.accessToken;
-      session.refreshToken = token.refreshToken;
-      session.error = token.error;
-      session.user.id = token.sub;
+      const sessionWithTokens = session as Session & {
+        accessToken?: string;
+        refreshToken?: string;
+        error?: string;
+        user: { id?: string };
+      };
+      sessionWithTokens.accessToken = token.accessToken as string;
+      sessionWithTokens.refreshToken = token.refreshToken as string;
+      sessionWithTokens.error = token.error as string;
+      sessionWithTokens.user.id = token.sub as string;
 
-      return session;
+      return sessionWithTokens;
     },
   },
 };

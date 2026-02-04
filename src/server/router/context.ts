@@ -17,15 +17,17 @@ const eventEmitter = new EventEmitter();
 export const createContext = async (
   opts?:
     | CreateNextContextOptions
-    | CreateWSSContextFnOptions<IncomingMessage, WebSocket>
+    | CreateWSSContextFnOptions
 ) => {
   const req = opts?.req;
   const res = opts?.res;
 
   const session = req && res ? await getSession({ req }) : null;
 
-  if (session?.accessToken) {
-    spotify.setAccessToken(session.accessToken);
+  const accessToken = (session as { accessToken?: string } | null)
+    ?.accessToken;
+  if (accessToken) {
+    spotify.setAccessToken(accessToken);
   }
 
   return {

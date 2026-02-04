@@ -4,7 +4,7 @@ import useDebounce from "../hooks/useDebounce";
 import { trpc } from "../utils/trpc";
 
 const Volume = () => {
-  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery({
+  const { isLoading } = trpc.spotify.getDevices.useQuery(undefined, {
     onSuccess(data) {
       const deviceVolume = data?.body.devices.find(
         (d) => d.is_active

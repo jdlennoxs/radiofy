@@ -13,8 +13,8 @@ const Station = ({ station }) => {
         >
           <Image
             className="-z-10"
-            height="176px"
-            width="176px"
+            height={176}
+            width={176}
             src={station.playbackContext?.track.albumImage}
             alt=""
           />

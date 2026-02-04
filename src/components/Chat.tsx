@@ -38,7 +38,7 @@ const Chat = ({
     { stationId },
     {
       enabled: Boolean(station?.id),
-      onNext: (message) => {
+      onData: (message) => {
         setMessages((current = []) => {
           return [...current, message];
         });
@@ -46,7 +46,7 @@ const Chat = ({
     }
   );
   trpc.station.onPlay.useSubscription(undefined, {
-    onNext(data) {
+    onData(data) {
       console.log(data);
     },
   });
@@ -56,7 +56,7 @@ const Chat = ({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const [bbox, ref] = useRect();
+  const [bbox, ref] = useRect<HTMLDivElement>();
   const [areaHeight, setAreaHeight] = useState(1);
   const handleTextUpdate = (event) => {
     setMessage(event.target.value);

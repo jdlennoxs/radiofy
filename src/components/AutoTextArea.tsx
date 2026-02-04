@@ -34,7 +34,7 @@ const AutoTextArea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => {
       className="resize-none shadow-inner h-fit py-2 px-4 w-full text-zinc-900 rounded-lg"
       ref={textareaRef}
       onChange={textAreaChange}
-      onKeyDown={props.handleKeyDown}
+      onKeyDown={props.onKeyDown}
     >
       {value}
     </textarea>
