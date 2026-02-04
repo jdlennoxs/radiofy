@@ -21,7 +21,7 @@ wss.on("connection", (ws) => {
   });
 });
 
-console.log("✅ WebSocket Server listening on ws://localhost:3001");
+console.log("✅ WebSocket Server listening on ws://127.0.0.1:3001");
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM");

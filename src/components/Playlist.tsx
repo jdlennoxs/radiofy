@@ -50,8 +50,7 @@ const Playlist = ({ setActiveResults }) => {
                   <Listbox.Option
                     key={p.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                        active ? "bg-amber-100 text-amber-900" : "text-zinc-900"
+                      `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-amber-100 text-amber-900" : "text-zinc-900"
                       }`
                     }
                     value={p}
@@ -59,9 +58,8 @@ const Playlist = ({ setActiveResults }) => {
                     {({ selected }) => (
                       <>
                         <span
-                          className={`block truncate ${
-                            selected ? "font-medium" : "font-normal"
-                          }`}
+                          className={`block truncate ${selected ? "font-medium" : "font-normal"
+                            }`}
                         >
                           {p.name}
                         </span>
@@ -81,9 +79,9 @@ const Playlist = ({ setActiveResults }) => {
       </div>
       <div className="h-96 overflow-scroll">
         <ul>
-          {playlist?.body.tracks.items.map((t) => (
-            <li>
-              <button onClick={() => {}}>
+          {playlist?.body.tracks.items.map((t, index) => (
+            <li key={t.track.id || index}>
+              <button onClick={() => { }}>
                 <div className="flex items-center space-x-4">
                   <img
                     className={"shadow-md rounded-lg h-12 w-12"}

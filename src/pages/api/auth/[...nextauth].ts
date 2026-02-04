@@ -21,7 +21,7 @@ const scopes = [
   "user-library-modify",
   "playlist-read-collaborative",
   "streaming",
-].join(",");
+].join(" ");
 
 const params = {
   scope: scopes,

@@ -23,7 +23,7 @@ const Home: NextPage = () => {
         {session ? (
           <div className="flex gap-10">
             {myStations?.map((station) => (
-              <Station station={station} devices={devices} />
+              <Station key={station.id} station={station} />
             ))}
           </div>
         ) : (
