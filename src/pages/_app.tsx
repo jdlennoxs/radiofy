@@ -1,14 +1,12 @@
 // src/pages/_app.tsx
-import { withTRPC } from "@trpc/next";
-import type { AppRouter } from "../server/router";
 import type { AppType } from "next/dist/shared/lib/utils";
-import superjson from "superjson";
+import type { AppRouter } from "../server/router";
 import { SessionProvider } from "next-auth/react";
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { wsLink, createWSClient } from "@trpc/client/links/wsLink";
+import { httpBatchLink, loggerLink, splitLink, wsLink, createWSClient } from "@trpc/client";
 import "../styles/globals.css";
 import SpotifyPlayer from "../components/layout";
+import { trpc } from "../utils/trpc";
+import superjson from "superjson";
 
 const MyApp: AppType = ({
   Component,
@@ -34,10 +32,6 @@ const getBaseUrl = () => {
 };
 
 const getEndingLink = () => {
-  /**
-   * If you want to use SSR, you need to use the server's full URL
-   * @link https://trpc.io/docs/ssr
-   */
   const url = `${getBaseUrl()}/api/trpc`;
 
   if (typeof window === "undefined") {
@@ -50,10 +44,18 @@ const getEndingLink = () => {
     url: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001",
   });
 
-  return wsLink<AppRouter>({ client });
+  return splitLink({
+    condition(op) {
+      return op.type === "subscription";
+    },
+    true: wsLink<AppRouter>({ client }),
+    false: httpBatchLink({
+      url,
+    }),
+  });
 };
 
-export default withTRPC<AppRouter>({
+export default trpc.withTRPC({
   config({ ctx }) {
     return {
       /**
@@ -74,7 +76,7 @@ export default withTRPC<AppRouter>({
        */
       transformer: superjson,
       /**
-       * @link https://react-query.tanstack.com/reference/QueryClient
+       * @link https://tanstack.com/query/latest/docs/react/reference/QueryClient
        */
       queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
       headers() {

@@ -6,7 +6,9 @@ import { trpc } from "../utils/trpc";
 const Search = () => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 50);
-  const { data: search } = trpc.useQuery(["spotify.search", query]);
+  const { data: search } = trpc.spotify.search.useQuery(query, {
+    enabled: query.length > 0,
+  });
 
   //   useEffect(
   //     () => {

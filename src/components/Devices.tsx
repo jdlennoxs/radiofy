@@ -5,17 +5,17 @@ import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";
 
 const Devices = () => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [activeDevice, setActiveDevice] = useState({});
-  const { data: devices, isLoading } = trpc.useQuery(["spotify.getDevices"], {
+  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery({
     onSuccess(data) {
       setActiveDevice(data?.body.devices.find((d) => d.is_active));
     },
   });
-  const { mutateAsync: setDevice } = trpc.useMutation(["spotify.setDevice"], {
+  const { mutateAsync: setDevice } = trpc.spotify.setDevice.useMutation({
     onSuccess: () => {
       setTimeout(() => {
-        utils.invalidateQueries(["spotify.getDevices"]);
+        void utils.spotify.getDevices.invalidate();
       }, 1200);
     },
   });
@@ -29,7 +29,7 @@ const Devices = () => {
         >
           <div className="relative mt-1">
             <Listbox.Button
-              onClick={() => utils.invalidateQueries(["spotify.getDevices"])}
+              onClick={() => void utils.spotify.getDevices.invalidate()}
               className="relative w-full cursor-default rounded-lg py-2 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
             >
               <span className="block truncate text-zinc-100">

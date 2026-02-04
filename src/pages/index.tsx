@@ -1,16 +1,15 @@
 import type { InferGetServerSidePropsType, NextPage } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Station from "../components/Station";
 
 const Home: NextPage = () => {
-  const { data: myStations } = trpc.useQuery(["dashboard.getOwned"]);
-  // const { data: stations } = trpc.useQuery(["stations.getRecent"]);
   const { data: session } = useSession();
-  const router = useRouter();
-
+  const { data: myStations } = trpc.dashboard.getOwned.useQuery(undefined, {
+    enabled: Boolean(session),
+  });
+  // const { data: stations } = trpc.stations.getRecent.useQuery();
   return (
     <>
       <Head>
@@ -23,7 +22,7 @@ const Home: NextPage = () => {
         {session ? (
           <div className="flex gap-10">
             {myStations?.map((station) => (
-              <Station station={station} devices={devices} />
+              <Station key={station.id} station={station} />
             ))}
           </div>
         ) : (

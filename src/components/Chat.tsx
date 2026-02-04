@@ -9,13 +9,11 @@ import AutoTextArea from "./AutoTextArea";
 import Devices from "./Devices";
 import Volume from "./Volume";
 import Playback from "./Playback";
-import EventEmitter from "events";
 import { useRect } from "../hooks/useRect";
 
 const Chat = ({
   station,
   session,
-  devices,
 }: {
   station: any;
   session: Session;
@@ -32,18 +30,22 @@ const Chat = ({
     }
   }, [station]);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
+  const { mutateAsync: sendMessageMutation } =
+    trpc.station.sendMessage.useMutation();
 
-  trpc.useSubscription(["station.onSendMessage", { stationId: station?.id }], {
-    onNext: (message) => {
-      setMessages((messages) => {
-        return [...messages, message];
-      });
-    },
-  });
-  trpc.useSubscription(["station.onPlay"], {
+  const stationId = station?.id ?? "";
+  trpc.station.onSendMessage.useSubscription(
+    { stationId },
+    {
+      enabled: Boolean(station?.id),
+      onNext: (message) => {
+        setMessages((current = []) => {
+          return [...current, message];
+        });
+      },
+    }
+  );
+  trpc.station.onPlay.useSubscription(undefined, {
     onNext(data) {
       console.log(data);
     },
@@ -128,7 +130,7 @@ const Chat = ({
           </button>
         </form>
         <div className="flex justify-between md:mr-14">
-          <Devices devices={devices} />
+          <Devices />
           <Playback />
           <Volume />
         </div>

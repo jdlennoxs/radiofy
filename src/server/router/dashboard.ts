@@ -1,8 +1,7 @@
-import { z } from "zod";
-import { createRouter } from "./context";
+import { createRouter, protectedProcedure } from "./context";
 
-export const dashboardRouter = createRouter().query("getOwned", {
-  resolve({ ctx }) {
+export const dashboardRouter = createRouter({
+  getOwned: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.station.findMany({
       where: {
         userId: ctx.session.user.id,
@@ -13,7 +12,7 @@ export const dashboardRouter = createRouter().query("getOwned", {
         },
       },
     });
-  },
+  }),
 });
 //   .mutation("createStation", {
 //       input: z.object({

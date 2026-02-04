@@ -1,12 +1,12 @@
 // src/server/router/context.ts
-import * as trpc from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
-import { NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/declarations/src/adapters/node-http";
+import { initTRPC, TRPCError } from "@trpc/server";
+import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import EventEmitter from "events";
 import { IncomingMessage } from "http";
-import { unstable_getServerSession as getServerSession } from "next-auth";
 import { getSession } from "next-auth/react";
 import { WebSocket } from "ws";
+import superjson from "superjson";
 
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
 import { prisma } from "../db/client";
@@ -16,15 +16,17 @@ const eventEmitter = new EventEmitter();
 
 export const createContext = async (
   opts?:
-    | trpcNext.CreateNextContextOptions
-    | NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>
+    | CreateNextContextOptions
+    | CreateWSSContextFnOptions<IncomingMessage, WebSocket>
 ) => {
   const req = opts?.req;
   const res = opts?.res;
 
-  const session = req && res && (await getSession({ req }));
+  const session = req && res ? await getSession({ req }) : null;
 
-  spotify.setAccessToken(session.accessToken);
+  if (session?.accessToken) {
+    spotify.setAccessToken(session.accessToken);
+  }
 
   return {
     req,
@@ -36,6 +38,21 @@ export const createContext = async (
   };
 };
 
-type Context = trpc.inferAsyncReturnType<typeof createContext>;
+export type Context = Awaited<ReturnType<typeof createContext>>;
 
-export const createRouter = () => trpc.router<Context>();
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+});
+
+export const createRouter = t.router;
+export const publicProcedure = t.procedure;
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      session: ctx.session,
+    },
+  });
+});
