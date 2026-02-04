@@ -93,11 +93,7 @@ const Chat = ({
                     session={session}
                   />
                 ) : (
-                  <TrackUpdate
-                    isCurrentlyPlaying
-                    key={message.id}
-                    message={message}
-                  />
+                  <TrackUpdate key={message.id} message={message} />
                 )}
               </>
             ))}

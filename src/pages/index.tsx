@@ -23,8 +23,9 @@ const Home: NextPage = () => {
         {session ? (
           <div className="flex gap-10">
             {myStations?.map((station) => (
-              <Station station={station} devices={devices} />
+              <Station station={station} />
             ))}
+            <button onClick={() => signOut()}>Sign out</button>{" "}
           </div>
         ) : (
           <>
