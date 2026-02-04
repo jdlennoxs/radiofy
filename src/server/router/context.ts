@@ -11,7 +11,11 @@ import superjson from "superjson";
 
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
 import { prisma } from "../db/client";
-import { spotifyApi as spotify } from "../spotify/client";
+import { spotifyApi as realSpotify } from "../spotify/client";
+import { mockSpotifyApi } from "../spotify/mock";
+import SpotifyWebApi from "spotify-web-api-node";
+
+const spotify = (process.env.MOCK_LOGIN === "true" ? mockSpotifyApi : realSpotify) as unknown as SpotifyWebApi;
 
 const eventEmitter = new EventEmitter();
 

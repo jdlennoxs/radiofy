@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthOptions, type Session } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { spotifyApi } from "../../../server/spotify/client";
 
 // Prisma adapter for NextAuth, optional and can be removed
@@ -59,6 +60,27 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET || "",
       authorization: `https://accounts.spotify.com/authorize?${queryParamString.toString()}`,
     }),
+    ...(process.env.MOCK_LOGIN === "true"
+      ? [
+        CredentialsProvider({
+          name: "Mock Login",
+          credentials: {
+            username: { label: "Username", type: "text", placeholder: "Alice" },
+          },
+          async authorize(credentials) {
+            if (credentials?.username) {
+              return {
+                id: "mock-user",
+                name: credentials.username,
+                email: "mock-user@example.com",
+                image: "https://i.pravatar.cc/150?u=mock-user",
+              };
+            }
+            return null;
+          },
+        }),
+      ]
+      : []),
   ],
   session: { strategy: "jwt" },
   callbacks: {
@@ -68,15 +90,21 @@ export const authOptions: NextAuthOptions = {
         return {
           ...token,
           accessToken: account.access_token,
-          accessTokenExpires: account.expires_at * 1000,
+          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000, // Handle optional for credentials
           refreshToken: account.refresh_token,
           user,
         };
       }
+
       // Return previous token if the access token has not expired yet
       const accessTokenExpires = Number(token.accessTokenExpires);
       if (!Number.isNaN(accessTokenExpires) && Date.now() < accessTokenExpires) {
         console.log("access token valid");
+        return token;
+      }
+
+      // If we are in mock mode (or simplistic check if no refresh token exists which might happen for mock), skip refresh
+      if (!token.refreshToken) {
         return token;
       }
 
