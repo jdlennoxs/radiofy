@@ -6,7 +6,7 @@ export default function Layout({ children }) {
 
   useSpotifyWebPlaybackSdk({
     name: "Radio Station",
-    accessToken: session?.accessToken as string,
+    accessToken: (session as { accessToken?: string } | null)?.accessToken,
   });
 
   return (

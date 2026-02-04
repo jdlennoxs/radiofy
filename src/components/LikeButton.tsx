@@ -2,59 +2,77 @@ import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilled } from "@heroicons/react/24/solid";
 import { trpc } from "../utils/trpc";
 
-const LikeButton = ({ song }) => {
+type LikeButtonSong = {
+  id: string;
+};
+
+const LikeButton = ({ song }: { song: LikeButtonSong }) => {
   const utils = trpc.useUtils();
   const { data: isSaved } = trpc.spotify.isSavedTrack.useQuery({
     id: song.id,
   });
   const { mutateAsync: addToSaved } =
     trpc.spotify.addToSavedTracks.useMutation({
-      onMutate: async (song) => {
-        await utils.spotify.isSavedTrack.cancel({ id: song.id });
+      onMutate: async (variables) => {
+        if (!variables || !variables.id) {
+          return;
+        }
+        await utils.spotify.isSavedTrack.cancel({ id: variables.id });
 
         const previousState = utils.spotify.isSavedTrack.getData({
-          id: song.id,
+          id: variables.id,
         });
 
-        utils.spotify.isSavedTrack.setData({ id: song.id }, { body: [true] });
+        utils.spotify.isSavedTrack.setData({ id: variables.id }, (current) =>
+          current ? { ...current, body: [true] } : current
+        );
 
-        return { previousState, song };
+        return { previousState, song: variables };
       },
-      onError: (err, song, context) => {
-        if (context?.previousState) {
+      onError: (_err, variables, context) => {
+        if (context?.previousState && variables && variables.id) {
           utils.spotify.isSavedTrack.setData(
-            { id: context.song.id },
+            { id: variables.id },
             context.previousState
           );
         }
       },
-      onSettled: (song) => {
-        void utils.spotify.isSavedTrack.invalidate({ id: song.id });
+      onSettled: (_data, _error, variables) => {
+        if (variables && variables.id) {
+          void utils.spotify.isSavedTrack.invalidate({ id: variables.id });
+        }
       },
     });
   const { mutateAsync: removeFromSaved } =
     trpc.spotify.removeFromSavedTracks.useMutation({
-      onMutate: async (song) => {
-        await utils.spotify.isSavedTrack.cancel({ id: song.id });
+      onMutate: async (variables) => {
+        if (!variables || !variables.id) {
+          return;
+        }
+        await utils.spotify.isSavedTrack.cancel({ id: variables.id });
 
         const previousState = utils.spotify.isSavedTrack.getData({
-          id: song.id,
+          id: variables.id,
         });
 
-        utils.spotify.isSavedTrack.setData({ id: song.id }, { body: [false] });
+        utils.spotify.isSavedTrack.setData({ id: variables.id }, (current) =>
+          current ? { ...current, body: [false] } : current
+        );
 
-        return { previousState, song };
+        return { previousState, song: variables };
       },
-      onError: (err, song, context) => {
-        if (context?.previousState) {
+      onError: (_err, variables, context) => {
+        if (context?.previousState && variables && variables.id) {
           utils.spotify.isSavedTrack.setData(
-            { id: context.song.id },
+            { id: variables.id },
             context.previousState
           );
         }
       },
-      onSettled: (song) => {
-        void utils.spotify.isSavedTrack.invalidate({ id: song.id });
+      onSettled: (_data, _error, variables) => {
+        if (variables && variables.id) {
+          void utils.spotify.isSavedTrack.invalidate({ id: variables.id });
+        }
       },
     });
 

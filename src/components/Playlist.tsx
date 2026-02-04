@@ -3,13 +3,19 @@ import { trpc } from "../utils/trpc";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 
+type PlaylistOption = {
+  id: string;
+  name: string;
+};
+
 const Playlist = ({ setActiveResults }) => {
-  const [selectedPlaylist, setSelectedPlaylist] = useState({ id: "" });
+  const [selectedPlaylist, setSelectedPlaylist] =
+    useState<PlaylistOption | null>(null);
   const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
   const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
-    { id: selectedPlaylist.id },
+    { id: selectedPlaylist?.id ?? "" },
     {
-      enabled: Boolean(selectedPlaylist.id),
+      enabled: Boolean(selectedPlaylist?.id),
       onSuccess(data) {
         setActiveResults(data.body.tracks.items);
       },
@@ -78,8 +84,12 @@ const Playlist = ({ setActiveResults }) => {
       </div>
       <div className="h-96 overflow-scroll">
         <ul>
-          {playlist?.body.tracks.items.map((t) => (
-            <li>
+          {playlist?.body.tracks.items.map((t, index) => (
+            <li
+              key={
+                t.track?.id ?? t.track?.uri ?? `${t.added_at ?? "track"}-${index}`
+              }
+            >
               <button onClick={() => {}}>
                 <div className="flex items-center space-x-4">
                   <img

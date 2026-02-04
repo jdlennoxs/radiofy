@@ -43,7 +43,7 @@ export const stationRouter = createRouter({
   sendMessage: publicProcedure
     .input(sendMessageSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session?.user?.id as string;
+      const userId = (ctx.session?.user as { id?: string } | undefined)?.id;
       if (userId) {
         const message = await ctx.prisma.message.create({
           data: {
@@ -98,7 +98,7 @@ export const stationRouter = createRouter({
       });
     }),
   play: publicProcedure.input(playTrackSchema).mutation(async ({ ctx, input }) => {
-    const userId = ctx.session?.user?.id as string;
+    const userId = (ctx.session?.user as { id?: string } | undefined)?.id;
     if (userId) {
       const track = await ctx.prisma.message.create({
         data: {

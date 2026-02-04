@@ -8,7 +8,8 @@ const MessageItem = ({
   message: Message;
   session: Session;
 }) => {
-  const isOwnMessage = message.sender.id === session.user?.id;
+  const isOwnMessage =
+    message.sender.id === (session.user as { id?: string } | null)?.id;
   const styles = "mb-2 max-w-[80%] md:max-w-7/12 p-2 mx-4 text-zinc-800";
   const liStyles = isOwnMessage
     ? styles.concat(" self-end")

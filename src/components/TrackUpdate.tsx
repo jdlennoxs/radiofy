@@ -10,7 +10,11 @@ const TrackUpdate = ({
   message: Message;
   isCurrentlyPlaying: boolean;
 }) => {
-  const [bbox, ref] = useRect();
+  const [bbox, ref] = useRect<HTMLElement>();
+  if (!message.track) {
+    return null;
+  }
+  const track = message.track;
   return (
     <section
       ref={ref}
@@ -24,18 +28,18 @@ const TrackUpdate = ({
         <div className="flex items-center space-x-4">
           <img
             className={`transition-image duration-150 ease-in-out shadow-md rounded-lg h-24 w-24`}
-            src={message.track.albumImage}
+            src={track.albumImage}
             alt=""
           />
           <div>
             <h3 className="text-zinc-900 font-semibold">
-              {message.track.name}
+              {track.name}
             </h3>
-            <p className="text-zinc-700">{message.track.artists}</p>
+            <p className="text-zinc-700">{track.artists}</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <LikeButton song={message.track} />
+          <LikeButton song={{ id: track.id }} />
           <FireButton />
         </div>
       </div>

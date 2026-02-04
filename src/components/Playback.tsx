@@ -6,7 +6,7 @@ import useQueueStore from "./QueueStore";
 const Playback = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const queue = useQueueStore((state) => state.tracks);
-  trpc.spotify.getPlaybackState.useQuery({
+  trpc.spotify.getPlaybackState.useQuery(undefined, {
     onSuccess(data) {
       setIsPlaying(data?.body.is_playing);
     },

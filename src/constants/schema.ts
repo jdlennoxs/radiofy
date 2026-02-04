@@ -14,9 +14,18 @@ export const playTrackSchema = z.object({
 
 const messageSchema = z.object({
   id: z.string(),
-  chat: z.object({ body: z.string() }),
+  chat: z.object({ body: z.string() }).optional(),
+  created: z.date(),
   stationId: z.string(),
-  sentAt: z.date(),
+  type: z.enum(["CHAT", "TRACK"]),
+  track: z
+    .object({
+      id: z.string(),
+      albumImage: z.string(),
+      name: z.string(),
+      artists: z.string(),
+    })
+    .optional(),
   sender: z.object({
     name: z.string(),
     id: z.string(),

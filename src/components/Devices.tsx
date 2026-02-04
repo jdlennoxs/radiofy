@@ -4,14 +4,23 @@ import { MegaphoneIcon } from "@heroicons/react/24/outline";
 import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";
 
+type SpotifyDevice = {
+  id?: string | null;
+  name?: string;
+  is_active?: boolean;
+};
+
 const Devices = () => {
   const utils = trpc.useUtils();
-  const [activeDevice, setActiveDevice] = useState({});
-  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery({
-    onSuccess(data) {
-      setActiveDevice(data?.body.devices.find((d) => d.is_active));
-    },
-  });
+  const [activeDevice, setActiveDevice] = useState<SpotifyDevice | null>(null);
+  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery(
+    undefined,
+    {
+      onSuccess(data) {
+        setActiveDevice(data?.body.devices.find((d) => d.is_active) ?? null);
+      },
+    }
+  );
   const { mutateAsync: setDevice } = trpc.spotify.setDevice.useMutation({
     onSuccess: () => {
       setTimeout(() => {
@@ -25,7 +34,11 @@ const Devices = () => {
       {isLoading ? null : (
         <Listbox
           value={activeDevice}
-          onChange={(device) => setDevice(device.id)}
+          onChange={(device) => {
+            if (device?.id) {
+              void setDevice(device.id);
+            }
+          }}
         >
           <div className="relative mt-1">
             <Listbox.Button
