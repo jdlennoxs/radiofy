@@ -1,15 +1,29 @@
-import type { InferGetServerSidePropsType, NextPage } from "next";
+import type { NextPage } from "next";
 import Head from "next/head";
 import { trpc } from "../utils/trpc";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Station from "../components/Station";
+import { useState } from "react";
+import useDebounce from "../hooks/useDebounce";
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
   const { data: myStations } = trpc.dashboard.getOwned.useQuery(undefined, {
     enabled: Boolean(session),
   });
-  // const { data: stations } = trpc.stations.getRecent.useQuery();
+
+  const { data: popularStations } = trpc.station.getPublic.useQuery();
+  const { data: searchResults } = trpc.station.search.useQuery(
+    { query: debouncedSearchQuery },
+    { enabled: !!debouncedSearchQuery }
+  );
+
+  console.log("Popular Stations:", popularStations);
+  console.log("Search Results:", searchResults);
+
   return (
     <>
       <Head>
@@ -18,18 +32,66 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="w-screen min-h-screen flex flex-col justify-center items-center p-4 overflow-y-scroll">
+      <div className="w-screen min-h-screen flex flex-col justify-center items-center p-4 overflow-y-scroll text-white">
         {session ? (
-          <div className="flex gap-10">
-            {myStations?.map((station) => (
-              <Station key={station.id} station={station} />
-            ))}
+          <div className="flex flex-col gap-8 w-full max-w-4xl">
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Your Stations</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {myStations?.map((station) => (
+                  <Station key={station.id} station={station} />
+                ))}
+                {myStations?.length === 0 && <p>You have no stations.</p>}
+              </div>
+            </section>
+
+            <section className="min-h-[500px]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Find Stations</h2>
+              </div>
+              <input
+                type="text"
+                placeholder="Search stations..."
+                className="border p-2 rounded w-full mb-6 text-black"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              {debouncedSearchQuery ? (
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-zinc-900">Search Results</h3>
+                  <div className="flex gap-4 flex-wrap">
+                    {searchResults?.map((station) => (
+                      <Station key={station.id} station={station} />
+                    ))}
+                    {searchResults?.length === 0 && <p className="text-zinc-700">No stations found matching "{debouncedSearchQuery}".</p>}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">Popular Stations</h3>
+                  <div className="flex gap-4 flex-wrap">
+                    {popularStations?.map((station) => (
+                      <Station key={station.id} station={station} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
         ) : (
           <>
             {" "}
-            Not signed in <br />{" "}
-            <button onClick={() => signIn()}>Sign in</button>{" "}
+            <div className="text-center">
+              <p className="mb-4 text-xl text-black">Not signed in</p>
+              <button
+                className="px-4 py-2 bg-blue-600 rounded text-white font-bold hover:bg-blue-700"
+                onClick={() => signIn()}
+              >
+                Sign in
+              </button>
+            </div>
+            {" "}
           </>
         )}
       </div>

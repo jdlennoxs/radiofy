@@ -5,6 +5,7 @@ export const MessageEnum = z.enum(["Track", "Text"]);
 export const sendMessageSchema = z.object({
   stationId: z.string(),
   message: z.string(),
+  id: z.string().optional(),
 });
 
 export const playTrackSchema = z.object({

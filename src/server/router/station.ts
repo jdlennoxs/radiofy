@@ -40,6 +40,39 @@ export const stationRouter = createRouter({
         },
       });
     }),
+  getPublic: publicProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.station.findMany({
+      where: {
+        isPublic: true,
+      },
+      orderBy: {
+        listenerCount: "desc",
+      },
+      take: 20,
+      include: {
+        playbackContext: true,
+      },
+    });
+  }),
+  search: publicProcedure
+    .input(
+      z.object({
+        query: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.station.findMany({
+        where: {
+          name: {
+            contains: input.query,
+          },
+          isPublic: true,
+        },
+        include: {
+          playbackContext: true,
+        },
+      });
+    }),
   sendMessage: publicProcedure
     .input(sendMessageSchema)
     .mutation(async ({ ctx, input }) => {
@@ -47,6 +80,7 @@ export const stationRouter = createRouter({
       if (userId) {
         const message = await ctx.prisma.message.create({
           data: {
+            id: input.id,
             type: "CHAT",
             created: new Date().toISOString(),
             station: {

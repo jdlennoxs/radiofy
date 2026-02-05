@@ -18,11 +18,10 @@ const TrackUpdate = ({
   return (
     <section
       ref={ref}
-      className={`items-end space-x-7 p-4 transition-[background] duration-150 ease-in-out ${
-        bbox?.top === 0
-          ? "bg-zinc-100 z-10"
+      className={`items-end space-x-7 p-4 transition-[background] duration-150 ease-in-out ${bbox?.top === 0
+          ? "bg-white z-10"
           : "bg-white border border-zinc-200 rounded-lg m-4 "
-      } ${isCurrentlyPlaying && "sticky top-0"}`}
+        } ${isCurrentlyPlaying && "sticky top-0"}`}
     >
       <div className="flex justify-between">
         <div className="flex items-center space-x-4">

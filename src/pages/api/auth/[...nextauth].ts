@@ -69,12 +69,34 @@ export const authOptions: NextAuthOptions = {
           },
           async authorize(credentials) {
             if (credentials?.username) {
-              return {
-                id: "mock-user",
-                name: credentials.username,
-                email: "mock-user@example.com",
-                image: "https://i.pravatar.cc/150?u=mock-user",
+              const username = credentials.username;
+              const user = {
+                id: `mock-user-${username.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+                name: username,
+                email: `${username.toLowerCase()}@example.com`,
+                image: `https://i.pravatar.cc/150?u=${username}`,
               };
+
+              try {
+                await prisma.user.upsert({
+                  where: { id: user.id },
+                  update: {
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                  },
+                  create: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                  },
+                });
+              } catch (e) {
+                console.error("Error upserting mock user", e);
+              }
+
+              return user;
             }
             return null;
           },

@@ -65,6 +65,8 @@ model Station {
   userId          String
   playbackContext PlaybackContext?
   messages        Message[]
+  isPublic        Boolean          @default(true)
+  listenerCount   Int              @default(0)
 }
 
 model PlaybackContext {
