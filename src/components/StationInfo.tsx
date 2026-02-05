@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import useDebounce from "../hooks/useDebounce";
-import { trpc } from "../utils/trpc";
-import Devices from "./Devices";
-import Playlist from "./Playlist";
+import { useState } from "react";
 import PlaylistBar from "./PlaylistBar";
 import Queue from "./Queue";
 import useQueueStore from "./QueueStore";
 import Results from "./Results";
-import Search from "./Search";
 
 const StationInfo = () => {
   // const [queue, setQueue] = useState<any>([]);
@@ -15,16 +10,7 @@ const StationInfo = () => {
   const queue = useQueueStore((state) => state.tracks);
   const setQueue = useQueueStore((state) => state.addTrack);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
-  // , {
-  // onNext: (message) => {
-  //   setMessages((messages) => {
-  //     return [...messages, message];
-  //   });
-  // },
-  // });
+  // TODO: Wire station-scoped actions here (queue updates, playback controls).
 
   return (
     <div className="flex-col mx-auto w-full lg:w-1/2 flex bg-zinc-900">

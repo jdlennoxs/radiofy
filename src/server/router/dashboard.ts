@@ -1,11 +1,10 @@
-import { z } from "zod";
-import { createRouter } from "./context";
+import { createRouter, protectedProcedure } from "./context";
 
-export const dashboardRouter = createRouter().query("getOwned", {
-  resolve({ ctx }) {
+export const dashboardRouter = createRouter({
+  getOwned: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.station.findMany({
       where: {
-        userId: ctx.session.user.id,
+        userId: (ctx.session.user as { id?: string }).id,
       },
       include: {
         playbackContext: {
@@ -13,7 +12,7 @@ export const dashboardRouter = createRouter().query("getOwned", {
         },
       },
     });
-  },
+  }),
 });
 //   .mutation("createStation", {
 //       input: z.object({

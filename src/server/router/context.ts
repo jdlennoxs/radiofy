@@ -1,30 +1,46 @@
 // src/server/router/context.ts
-import * as trpc from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
-import { NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/declarations/src/adapters/node-http";
+import { initTRPC, TRPCError } from "@trpc/server";
+import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import EventEmitter from "events";
 import { IncomingMessage } from "http";
-import { unstable_getServerSession as getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { getSession } from "next-auth/react";
 import { WebSocket } from "ws";
+import superjson from "superjson";
 
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
 import { prisma } from "../db/client";
-import { spotifyApi as spotify } from "../spotify/client";
+import { spotifyApi as realSpotify } from "../spotify/client";
+import { mockSpotifyApi } from "../spotify/mock";
+import SpotifyWebApi from "spotify-web-api-node";
+
+const spotify = (process.env.MOCK_LOGIN === "true" ? mockSpotifyApi : realSpotify) as unknown as SpotifyWebApi;
 
 const eventEmitter = new EventEmitter();
 
 export const createContext = async (
   opts?:
-    | trpcNext.CreateNextContextOptions
-    | NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>
+    | CreateNextContextOptions
+    | CreateWSSContextFnOptions
 ) => {
   const req = opts?.req;
   const res = opts?.res;
 
-  const session = req && res && (await getSession({ req }));
+  let session = null;
+  if (req && res) {
+    if ("setHeader" in (res as any)) {
+      session = await getServerSession(req as any, res as any, nextAuthOptions);
+    } else {
+      session = await getSession({ req });
+    }
+  }
 
-  spotify.setAccessToken(session.accessToken);
+  const accessToken = (session as { accessToken?: string } | null)
+    ?.accessToken;
+  if (accessToken) {
+    spotify.setAccessToken(accessToken);
+  }
 
   return {
     req,
@@ -36,6 +52,21 @@ export const createContext = async (
   };
 };
 
-type Context = trpc.inferAsyncReturnType<typeof createContext>;
+export type Context = Awaited<ReturnType<typeof createContext>>;
 
-export const createRouter = () => trpc.router<Context>();
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+});
+
+export const createRouter = t.router;
+export const publicProcedure = t.procedure;
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      session: ctx.session,
+    },
+  });
+});

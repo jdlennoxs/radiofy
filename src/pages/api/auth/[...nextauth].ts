@@ -1,5 +1,6 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth, { type NextAuthOptions, type Session } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { spotifyApi } from "../../../server/spotify/client";
 
 // Prisma adapter for NextAuth, optional and can be removed
@@ -21,7 +22,7 @@ const scopes = [
   "user-library-modify",
   "playlist-read-collaborative",
   "streaming",
-].join(",");
+].join(" ");
 
 const params = {
   scope: scopes,
@@ -31,14 +32,14 @@ const queryParamString = new URLSearchParams(params);
 
 async function refreshAccessToken(token: JWT) {
   try {
-    spotifyApi.setAccessToken(token.accessToken);
-    spotifyApi.setRefreshToken(token.refreshToken);
+    spotifyApi.setAccessToken(token.accessToken as string);
+    spotifyApi.setRefreshToken(token.refreshToken as string);
     const { body: refreshedToken } = await spotifyApi.refreshAccessToken();
 
     return {
       ...token,
       accessToken: refreshedToken.access_token,
-      accessTokenExpires: Date.now() + refreshedToken?.expires_at * 1000,
+      accessTokenExpires: Date.now() + refreshedToken.expires_in * 1000,
       refreshToken: refreshedToken.refresh_token ?? token.refreshToken,
     };
   } catch (error) {
@@ -59,6 +60,49 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET || "",
       authorization: `https://accounts.spotify.com/authorize?${queryParamString.toString()}`,
     }),
+    ...(process.env.MOCK_LOGIN === "true"
+      ? [
+        CredentialsProvider({
+          name: "Mock Login",
+          credentials: {
+            username: { label: "Username", type: "text", placeholder: "Alice" },
+          },
+          async authorize(credentials) {
+            if (credentials?.username) {
+              const username = credentials.username;
+              const user = {
+                id: `mock-user-${username.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+                name: username,
+                email: `${username.toLowerCase()}@example.com`,
+                image: `https://i.pravatar.cc/150?u=${username}`,
+              };
+
+              try {
+                await prisma.user.upsert({
+                  where: { id: user.id },
+                  update: {
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                  },
+                  create: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                  },
+                });
+              } catch (e) {
+                console.error("Error upserting mock user", e);
+              }
+
+              return user;
+            }
+            return null;
+          },
+        }),
+      ]
+      : []),
   ],
   session: { strategy: "jwt" },
   callbacks: {
@@ -68,14 +112,21 @@ export const authOptions: NextAuthOptions = {
         return {
           ...token,
           accessToken: account.access_token,
-          accessTokenExpires: account.expires_at * 1000,
+          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000, // Handle optional for credentials
           refreshToken: account.refresh_token,
           user,
         };
       }
+
       // Return previous token if the access token has not expired yet
-      if (Date.now() < token.accessTokenExpires) {
+      const accessTokenExpires = Number(token.accessTokenExpires);
+      if (!Number.isNaN(accessTokenExpires) && Date.now() < accessTokenExpires) {
         console.log("access token valid");
+        return token;
+      }
+
+      // If we are in mock mode (or simplistic check if no refresh token exists which might happen for mock), skip refresh
+      if (!token.refreshToken) {
         return token;
       }
 
@@ -84,12 +135,18 @@ export const authOptions: NextAuthOptions = {
       return refreshAccessToken(token);
     },
     async session({ session, token, user }) {
-      session.accessToken = token.accessToken;
-      session.refreshToken = token.refreshToken;
-      session.error = token.error;
-      session.user.id = token.sub;
+      const sessionWithTokens = session as Session & {
+        accessToken?: string;
+        refreshToken?: string;
+        error?: string;
+        user: { id?: string };
+      };
+      sessionWithTokens.accessToken = token.accessToken as string;
+      sessionWithTokens.refreshToken = token.refreshToken as string;
+      sessionWithTokens.error = token.error as string;
+      sessionWithTokens.user.id = token.sub as string;
 
-      return session;
+      return sessionWithTokens;
     },
   },
 };

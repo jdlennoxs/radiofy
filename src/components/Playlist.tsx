@@ -1,22 +1,25 @@
 import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";
-import { Listbox, Transition, Combobox } from "@headlessui/react";
+import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
 
+type PlaylistOption = {
+  id: string;
+  name: string;
+};
+
 const Playlist = ({ setActiveResults }) => {
-  const [selectedPlaylist, setSelectedPlaylist] = useState({ id: "" });
-  const { data: playlists } = trpc.useQuery(["spotify.getUserPlaylists"]);
-  const { data: playlist } = trpc.useQuery(
-    ["spotify.getPlaylist", { id: selectedPlaylist.id }],
+  const [selectedPlaylist, setSelectedPlaylist] =
+    useState<PlaylistOption | null>(null);
+  const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
+  const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
+    { id: selectedPlaylist?.id ?? "" },
     {
+      enabled: Boolean(selectedPlaylist?.id),
       onSuccess(data) {
         setActiveResults(data.body.tracks.items);
       },
     }
-  );
-
-  const { mutateAsync: startPlayback } = trpc.useMutation(
-    "spotify.startPlayback"
   );
 
   return (
@@ -50,8 +53,7 @@ const Playlist = ({ setActiveResults }) => {
                   <Listbox.Option
                     key={p.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                        active ? "bg-amber-100 text-amber-900" : "text-zinc-900"
+                      `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-amber-100 text-amber-900" : "text-zinc-900"
                       }`
                     }
                     value={p}
@@ -59,9 +61,8 @@ const Playlist = ({ setActiveResults }) => {
                     {({ selected }) => (
                       <>
                         <span
-                          className={`block truncate ${
-                            selected ? "font-medium" : "font-normal"
-                          }`}
+                          className={`block truncate ${selected ? "font-medium" : "font-normal"
+                            }`}
                         >
                           {p.name}
                         </span>
@@ -81,9 +82,13 @@ const Playlist = ({ setActiveResults }) => {
       </div>
       <div className="h-96 overflow-scroll">
         <ul>
-          {playlist?.body.tracks.items.map((t) => (
-            <li>
-              <button onClick={() => {}}>
+          {playlist?.body.tracks.items.map((t, index) => (
+            <li
+              key={
+                t.track?.id ?? t.track?.uri ?? `${t.added_at ?? "track"}-${index}`
+              }
+            >
+              <button onClick={() => { }}>
                 <div className="flex items-center space-x-4">
                   <img
                     className={"shadow-md rounded-lg h-12 w-12"}

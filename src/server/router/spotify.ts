@@ -1,80 +1,67 @@
-import { createRouter } from "./context";
+import { createRouter, publicProcedure } from "./context";
 import { z } from "zod";
 
-export const spotifyRouter = createRouter()
-  .query("getDevices", {
-    async resolve({ ctx }) {
-      return await ctx.spotify.getMyDevices();
-    },
-  })
-  .query("getUserPlaylists", {
-    async resolve({ ctx }) {
-      return await ctx.spotify.getUserPlaylists({ limit: 50 });
-    },
-  })
-  .query("getPlaylist", {
-    input: z.object({
-      id: z.string(),
+export const spotifyRouter = createRouter({
+  getDevices: publicProcedure.query(async ({ ctx }) => {
+    return ctx.spotify.getMyDevices();
+  }),
+  getUserPlaylists: publicProcedure.query(async ({ ctx }) => {
+    return ctx.spotify.getUserPlaylists({ limit: 50 });
+  }),
+  getPlaylist: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.spotify.getPlaylist(input.id);
     }),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.getPlaylist(input.id);
-    },
-  })
-  .query("isSavedTrack", {
-    input: z.object({
-      id: z.string(),
+  isSavedTrack: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.spotify.containsMySavedTracks([input.id]);
     }),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.containsMySavedTracks([input.id]);
-    },
-  })
-  .query("getPlaybackState", {
-    async resolve({ ctx }) {
-      return await ctx.spotify.getMyCurrentPlaybackState();
-    },
-  })
-  .query("search", {
-    input: z.string(),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.searchTracks(input);
-    },
-  })
-  .mutation("startPlayback", {
-    input: z.string().array().optional(),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.play({ uris: input });
-    },
-  })
-  .mutation("stopPlayback", {
-    async resolve({ ctx }) {
-      return await ctx.spotify.pause();
-    },
-  })
-  .mutation("setDevice", {
-    input: z.string(),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.transferMyPlayback([input]);
-    },
-  })
-  .mutation("setVolume", {
-    input: z.number(),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.setVolume(input);
-    },
-  })
-  .mutation("addToSavedTracks", {
-    input: z.object({
-      id: z.string(),
+  getPlaybackState: publicProcedure.query(async ({ ctx }) => {
+    return ctx.spotify.getMyCurrentPlaybackState();
+  }),
+  search: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    return ctx.spotify.searchTracks(input);
+  }),
+  startPlayback: publicProcedure
+    .input(z.string().array().optional())
+    .mutation(async ({ ctx, input }) => {
+      return ctx.spotify.play({ uris: input });
     }),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.addToMySavedTracks([input.id]);
-    },
-  })
-  .mutation("removeFromSavedTracks", {
-    input: z.object({
-      id: z.string(),
+  stopPlayback: publicProcedure.mutation(async ({ ctx }) => {
+    return ctx.spotify.pause();
+  }),
+  setDevice: publicProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    return ctx.spotify.transferMyPlayback([input]);
+  }),
+  setVolume: publicProcedure.input(z.number()).mutation(async ({ ctx, input }) => {
+    return ctx.spotify.setVolume(input);
+  }),
+  addToSavedTracks: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.spotify.addToMySavedTracks([input.id]);
     }),
-    async resolve({ ctx, input }) {
-      return await ctx.spotify.removeFromMySavedTracks([input.id]);
-    },
-  });
+  removeFromSavedTracks: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.spotify.removeFromMySavedTracks([input.id]);
+    }),
+});

@@ -2,7 +2,7 @@ import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";
 import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import { MinusSmallIcon } from "@heroicons/react/24/solid";
 import useQueueStore from "./QueueStore";
@@ -45,11 +45,10 @@ const Queue = () => {
                 >
                   {(provided, snapshot) => (
                     <div
-                      className={`${
-                        snapshot.isDragging
+                      className={`${snapshot.isDragging
                           ? "bg-zinc-800 border border-zinc-300 rounded-lg"
                           : "bg-zinc-900"
-                      }`}
+                        }`}
                       ref={provided.innerRef}
                       {...provided.dragHandleProps}
                       {...provided.draggableProps}

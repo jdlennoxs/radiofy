@@ -9,13 +9,11 @@ import AutoTextArea from "./AutoTextArea";
 import Devices from "./Devices";
 import Volume from "./Volume";
 import Playback from "./Playback";
-import EventEmitter from "events";
 import { useRect } from "../hooks/useRect";
 
 const Chat = ({
   station,
   session,
-  devices,
 }: {
   station: any;
   session: Session;
@@ -32,19 +30,26 @@ const Chat = ({
     }
   }, [station]);
 
-  const { mutateAsync: sendMessageMutation } = trpc.useMutation(
-    "station.send-message"
-  );
+  const { mutateAsync: sendMessageMutation } =
+    trpc.station.sendMessage.useMutation();
 
-  trpc.useSubscription(["station.onSendMessage", { stationId: station?.id }], {
-    onNext: (message) => {
-      setMessages((messages) => {
-        return [...messages, message];
-      });
-    },
-  });
-  trpc.useSubscription(["station.onPlay"], {
-    onNext(data) {
+  const stationId = station?.id ?? "";
+  trpc.station.onSendMessage.useSubscription(
+    { stationId },
+    {
+      enabled: Boolean(station?.id),
+      onData: (message) => {
+        setMessages((current = []) => {
+          if (current.some((m) => m.id === message.id)) {
+            return current;
+          }
+          return [...current, message];
+        });
+      },
+    }
+  );
+  trpc.station.onPlay.useSubscription(undefined, {
+    onData(data) {
       console.log(data);
     },
   });
@@ -54,7 +59,7 @@ const Chat = ({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const [bbox, ref] = useRect();
+  const [bbox, ref] = useRect<HTMLDivElement>();
   const [areaHeight, setAreaHeight] = useState(1);
   const handleTextUpdate = (event) => {
     setMessage(event.target.value);
@@ -68,39 +73,63 @@ const Chat = ({
 
   const onSubmit = (e) => {
     e.preventDefault();
-    sendMessageMutation({ stationId: station.id, message });
+    if (!message.trim()) return;
+
+    const tempId = crypto.randomUUID();
+    const optimisticMessage: Message = {
+      id: tempId,
+      stationId: station.id,
+      chat: { body: message },
+      created: new Date(),
+      type: "CHAT",
+      sender: {
+        id: (session?.user as any)?.id || "temp-id",
+        name: session?.user?.name || "Me",
+      },
+    };
+
+    setMessages((current = []) => [...current, optimisticMessage]);
+
+    sendMessageMutation({ stationId: station.id, message, id: tempId });
     setMessage("");
     setAreaHeight(1);
   };
 
-  // const handleKeyDown = (event) => {
-  //   if (event.key === "Enter") {
-  //     formRef.requestSubmit();
-  //   }
-  // };
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      formRef.current?.requestSubmit();
+    }
+  };
 
   return (
-    <div className="flex flex-col flex-grow">
+    <div className="flex flex-col flex-grow bg-zinc-50">
       <div className="overflow-y-scroll">
         {messages && (
           <ul className={`flex flex-col`}>
-            {messages.map((message) => (
-              <>
-                {message.type === "CHAT" ? (
-                  <MessageItem
-                    key={message.id}
-                    message={message}
-                    session={session}
-                  />
-                ) : (
-                  <TrackUpdate
-                    isCurrentlyPlaying
-                    key={message.id}
-                    message={message}
-                  />
-                )}
-              </>
-            ))}
+            {messages.map((message, index) => {
+              const previousMessage = messages[index - 1];
+              const showName =
+                !previousMessage || previousMessage.sender.id !== message.sender.id;
+              return (
+                <>
+                  {message.type === "CHAT" ? (
+                    <MessageItem
+                      key={message.id}
+                      message={message}
+                      session={session}
+                      showName={showName}
+                    />
+                  ) : (
+                    <TrackUpdate
+                      isCurrentlyPlaying
+                      key={message.id}
+                      message={message}
+                    />
+                  )}
+                </>
+              );
+            })}
           </ul>
         )}
         <div ref={bottomRef} />
@@ -112,14 +141,19 @@ const Chat = ({
             <AutoTextArea
               value={message}
               onChange={handleTextUpdate}
+              onKeyDown={handleKeyDown}
               placeholder="Message"
             />
           </div>
           <button
-            className="flex-none text-amber-900 bg-amber-100 p-4 rounded-full ml-4"
+            className={`flex-none p-4 rounded-full ml-4 transition-colors ${!message.trim()
+              ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+              : "text-amber-600 bg-amber-100 hover:bg-amber-200"
+              }`}
             type="submit"
+            disabled={!message.trim()}
           >
-            <span className="flex items-center text-amber-600">
+            <span className="flex items-center">
               <PaperAirplaneIcon
                 className="h-5 w-5 rotate-[-45deg]"
                 aria-hidden="true"
@@ -128,7 +162,7 @@ const Chat = ({
           </button>
         </form>
         <div className="flex justify-between md:mr-14">
-          <Devices devices={devices} />
+          <Devices />
           <Playback />
           <Volume />
         </div>
