@@ -145,6 +145,9 @@ export const authOptions: NextAuthOptions = {
       sessionWithTokens.refreshToken = token.refreshToken as string;
       sessionWithTokens.error = token.error as string;
       sessionWithTokens.user.id = token.sub as string;
+      sessionWithTokens.user.name = token.name as string;
+      sessionWithTokens.user.email = token.email as string;
+      sessionWithTokens.user.image = (token.picture || (token.user as any)?.image) as string | null | undefined;
 
       return sessionWithTokens;
     },
