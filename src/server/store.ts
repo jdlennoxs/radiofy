@@ -29,6 +29,8 @@ export type StationSummary = {
   listenerCount: number;
   playlistSize: number;
   nowPlaying: Track | null;
+  /** Artwork for the top playlist entry — used as the station card cover. */
+  coverArtwork: string | null;
 };
 
 export type StationView = StationSummary & {
@@ -95,6 +97,7 @@ function summarise(station: Station): StationSummary {
     listenerCount: station.listeners.size,
     playlistSize: station.playlist.length,
     nowPlaying: findTrack(station, station.playback.trackId),
+    coverArtwork: station.playlist[0]?.artwork ?? null,
   };
 }
 
