@@ -4,14 +4,12 @@ import type { Message } from "../constants/schema";
 /**
  * A track in the timeline. Every track row is sticky, not just the current one:
  * as the timeline scrolls, each track pins to the top and the next one covers
- * it, so the newest tracks stack at the top. Once a row has stuck it goes fully
- * opaque and drops its top margin, so stacked rows abut cleanly and hide the
- * messages scrolling beneath them.
+ * it, so the newest tracks stack at the top.
  *
+ * Once a row has stuck it drops its top margin, so there is no gap above it.
  * "Stuck" is measured against the timeline's own scroll container (not the
- * window): the row's top edge reaching the container's top edge.
- *
- * `isCurrent` only drives the "playing" highlight.
+ * window). The background is uniform; `isCurrent` only tints the border and
+ * shows the "playing" label.
  */
 export default function TrackUpdate({
   message,
@@ -52,17 +50,12 @@ export default function TrackUpdate({
 
   const border = isCurrent ? "border-amber-600/60" : "border-zinc-800";
 
-  // Stuck: a full-bleed band pinned to the top — margin, corners and the
-  // side/top border all drop away, background goes opaque. Animating those
-  // properties is what makes the pin feel slick.
-  const state = stuck
-    ? `z-10 mx-0 my-0 rounded-none border-x-0 border-t-0 bg-zinc-950 ${border}`
-    : `mx-4 my-3 rounded-lg ${isCurrent ? "bg-amber-950" : "bg-zinc-900"} ${border}`;
-
   return (
     <div
       ref={ref}
-      className={`sticky top-0 flex items-center gap-3 border p-3 transition-[background-color,border-color,border-radius,margin] duration-200 ease-in-out ${state}`}
+      className={`sticky top-0 flex items-center gap-3 rounded-lg border bg-zinc-900 p-3 transition-[margin] duration-150 ease-in-out ${border} ${
+        stuck ? "my-0" : "my-3"
+      }`}
     >
       {track.artwork ? (
         // eslint-disable-next-line @next/next/no-img-element
