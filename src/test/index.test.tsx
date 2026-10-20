@@ -56,6 +56,10 @@ vi.mock("../utils/trpc", () => ({
         }),
       },
     },
+    station: {
+      getPublic: { useQuery: () => ({ data: [] }) },
+      search: { useQuery: () => ({ data: [] }) },
+    },
   },
 }));
 
