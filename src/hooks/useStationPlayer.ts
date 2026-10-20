@@ -11,12 +11,14 @@ import type { Playback, Track } from "../constants/schema";
  */
 
 type SCWidget = {
-  bind: (event: string, cb: () => void) => void;
+  bind: (event: string, cb: (payload?: unknown) => void) => void;
   play: () => void;
   pause: () => void;
   seekTo: (ms: number) => void;
   setVolume: (volume: number) => void;
   getPosition: (cb: (ms: number) => void) => void;
+  getDuration: (cb: (ms: number) => void) => void;
+  isPaused: (cb: (paused: boolean) => void) => void;
   load: (
     url: string,
     options?: { auto_play?: boolean; callback?: () => void }
@@ -29,6 +31,7 @@ type SCLoader = {
       READY: string;
       PLAY: string;
       PAUSE: string;
+      SEEK: string;
       FINISH: string;
       ERROR: string;
     };
@@ -96,7 +99,24 @@ export function useStationPlayer(options: {
 
     const widget = window.SC.Widget(element);
     widgetRef.current = widget;
-    widget.bind(window.SC.Widget.Events.FINISH, () => onEndedRef.current());
+
+    // Diagnostic: surface exactly what the player is doing. Remove once playback
+    // is confirmed working.
+    const events = window.SC.Widget.Events;
+    const log =
+      (name: string) =>
+      (payload?: unknown) =>
+        console.debug(`[soundcloud] ${name}`, payload ?? "");
+    widget.bind(events.READY, log("READY"));
+    widget.bind(events.PLAY, log("PLAY"));
+    widget.bind(events.PAUSE, log("PAUSE"));
+    widget.bind(events.SEEK, log("SEEK"));
+    widget.bind(events.ERROR, log("ERROR"));
+    widget.bind(events.FINISH, () => {
+      console.debug("[soundcloud] FINISH");
+      onEndedRef.current();
+    });
+
     return () => {
       widgetRef.current = null;
     };
@@ -111,11 +131,27 @@ export function useStationPlayer(options: {
       ? Math.max(0, Date.now() - playback.startedAt)
       : 0;
 
+    console.debug("[soundcloud] load", track.sourceId, {
+      offset,
+      isPlaying: playback.isPlaying,
+    });
     widget.load(track.sourceId, {
       auto_play: false,
       callback: () => {
+        console.debug("[soundcloud] loaded -> seekTo", offset);
         widget.seekTo(offset);
         if (playback.isPlaying) widget.play();
+        widget.getDuration((duration) =>
+          console.debug("[soundcloud] duration", duration)
+        );
+        setTimeout(() => {
+          widget.getPosition((position) =>
+            console.debug("[soundcloud] position ~1.5s after load", position)
+          );
+          widget.isPaused((paused) =>
+            console.debug("[soundcloud] isPaused ~1.5s after load", paused)
+          );
+        }, 1500);
       },
     });
     // Reload only when the track or its start time changes.
@@ -126,6 +162,9 @@ export function useStationPlayer(options: {
   useEffect(() => {
     const widget = widgetRef.current;
     if (!ready || !widget) return;
+    console.debug("[soundcloud] follow playback state", {
+      isPlaying: playback.isPlaying,
+    });
     if (playback.isPlaying) widget.play();
     else widget.pause();
   }, [ready, playback.isPlaying]);

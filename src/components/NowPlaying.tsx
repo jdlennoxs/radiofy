@@ -81,16 +81,16 @@ export default function NowPlaying({
       </div>
 
       {/*
-        Hidden SoundCloud embed. Driven entirely by useStationPlayer, so the
-        room's transport/UI stays ours. `allow="autoplay"` lets a click on this
-        page start the cross-origin player.
+        SoundCloud embed. Usually hidden so the room owns the transport UI, but
+        currently visible to debug playback. `allow="autoplay"` lets a click on
+        this page start the cross-origin player.
       */}
       <iframe
         ref={iframeRef}
         title="SoundCloud player"
         allow="autoplay"
         scrolling="no"
-        className="pointer-events-none fixed -left-[9999px] h-px w-px opacity-0"
+        className="mt-4 h-[166px] w-full rounded-lg border border-zinc-800"
       />
     </section>
   );
