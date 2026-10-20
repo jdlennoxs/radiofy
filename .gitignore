@@ -34,3 +34,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# local database (prisma/sqlite)
+*.sqlite
+*.sqlite-journal
+prisma/db.sqlite
+prisma/db.sqlite-journal
