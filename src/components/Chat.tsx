@@ -70,8 +70,12 @@ export default function Chat({
         Timeline
       </div>
 
-      {/* The scroll container the now-playing track sticks to. */}
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+      {/*
+        The scroll container the tracks stick to. Spacing lives on the rows
+        themselves (not `space-y`) so a stuck track can drop its margin and
+        abut the one above it.
+      */}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="text-sm text-zinc-600">
             No messages yet — say hello, or put a track on.
