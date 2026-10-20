@@ -8,7 +8,7 @@ export default function MessageItem({
   isOwn: boolean;
 }) {
   return (
-    <div className={`mx-4 my-2 flex ${isOwn ? "justify-end" : "justify-start"}`}>
+    <div className={`my-2 flex ${isOwn ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
           isOwn ? "bg-amber-500/90 text-zinc-900" : "bg-zinc-800 text-zinc-100"

@@ -70,17 +70,14 @@ export default function Chat({
         Timeline
       </div>
 
-      {/*
-        Timeline scroll container. No horizontal or top padding: stuck track
-        rows drop their own margin and go full-bleed, pinning flush to this
-        container's top edge. Rows measure against it via the data attribute.
-      */}
+      {/* Timeline scroll container. Track rows measure against it to detect
+          when they have stuck to the top. */}
       <div
         data-timeline-scroll
-        className="min-h-0 flex-1 overflow-y-auto pb-4"
+        className="min-h-0 flex-1 overflow-y-auto p-4"
       >
         {messages.length === 0 && (
-          <p className="mx-4 mt-4 text-sm text-zinc-600">
+          <p className="text-sm text-zinc-600">
             No messages yet — say hello, or put a track on.
           </p>
         )}
