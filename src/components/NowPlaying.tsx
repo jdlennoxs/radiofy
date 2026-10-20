@@ -13,8 +13,8 @@ type Props = {
 
 export default function NowPlaying({ track, listenerCount, iframeRef }: Props) {
   return (
-    <section className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-      <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-wider text-zinc-500">
+    <section className="rounded-xl border border-cream-300 bg-white p-5">
+      <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-wider text-forest-600">
         <span>Now playing</span>
         <span>{listenerCount} listening</span>
       </div>
@@ -25,18 +25,18 @@ export default function NowPlaying({ track, listenerCount, iframeRef }: Props) {
           <img
             src={track.artwork}
             alt=""
-            className="h-20 w-20 rounded-lg shadow-lg"
+            className="h-20 w-20 rounded-lg shadow-md"
           />
         ) : (
-          <span className="grid h-20 w-20 place-items-center rounded-lg bg-zinc-800 text-2xl">
+          <span className="grid h-20 w-20 place-items-center rounded-lg bg-cream-200 text-2xl text-forest-700">
             ♪
           </span>
         )}
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold">
+          <h2 className="truncate text-lg font-semibold text-forest-900">
             {track?.name ?? "Nothing playing"}
           </h2>
-          <p className="truncate text-sm text-zinc-400">
+          <p className="truncate text-sm text-forest-600">
             {track?.artist ?? "Pick a track to start the room"}
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function NowPlaying({ track, listenerCount, iframeRef }: Props) {
         title="SoundCloud player"
         allow="autoplay"
         scrolling="no"
-        className="mt-4 h-[166px] w-full rounded-lg border border-zinc-800"
+        className="mt-4 h-[166px] w-full rounded-lg border border-cream-300"
       />
     </section>
   );
