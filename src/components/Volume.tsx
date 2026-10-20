@@ -4,18 +4,18 @@ import useDebounce from "../hooks/useDebounce";
 import { trpc } from "../utils/trpc";
 
 const Volume = () => {
-  const { isLoading } = trpc.spotify.getDevices.useQuery(undefined, {
-    onSuccess(data) {
-      const deviceVolume = data?.body.devices.find(
-        (d) => d.is_active
-      )?.volume_percent;
-      if (deviceVolume && deviceVolume !== volume) setVolume(deviceVolume);
-    },
-  });
   const [volume, setVolume] = useState(50);
+  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery();
   const debouncedVolume = useDebounce(volume, 50);
   const { mutateAsync: setDeviceVolume } =
     trpc.spotify.setVolume.useMutation();
+
+  useEffect(() => {
+    const deviceVolume = devices?.body.devices.find(
+      (d) => d.is_active
+    )?.volume_percent;
+    if (deviceVolume && deviceVolume !== volume) setVolume(deviceVolume);
+  }, [devices, volume]);
 
   useEffect(
     () => {

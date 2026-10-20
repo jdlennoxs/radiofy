@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/solid";
@@ -20,11 +20,14 @@ const Playlist = ({
     { id: selectedPlaylist?.id ?? "" },
     {
       enabled: Boolean(selectedPlaylist?.id),
-      onSuccess(data) {
-        setActiveResults(data.body.tracks.items);
-      },
     }
   );
+
+  useEffect(() => {
+    if (playlist) {
+      setActiveResults(playlist.body.tracks.items);
+    }
+  }, [playlist, setActiveResults]);
 
   return (
     <div className=" flex-row">

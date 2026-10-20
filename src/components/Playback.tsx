@@ -6,11 +6,12 @@ import useQueueStore from "./QueueStore";
 const Playback = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const queue = useQueueStore((state) => state.tracks);
-  trpc.spotify.getPlaybackState.useQuery(undefined, {
-    onSuccess(data) {
-      setIsPlaying(data?.body.is_playing);
-    },
-  });
+  const { data: playbackState } = trpc.spotify.getPlaybackState.useQuery();
+  useEffect(() => {
+    if (playbackState !== undefined) {
+      setIsPlaying(playbackState?.body.is_playing ?? false);
+    }
+  }, [playbackState]);
   const { mutateAsync: pause } = trpc.spotify.stopPlayback.useMutation();
   const { mutateAsync: onPlay } = trpc.station.play.useMutation();
 

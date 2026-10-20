@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 import { CheckIcon } from "@heroicons/react/24/solid";
 
@@ -15,15 +15,18 @@ const PlaylistBar = ({
   const [selectedPlaylist, setSelectedPlaylist] =
     useState<PlaylistOption | null>(null);
   const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();
-  trpc.spotify.getPlaylist.useQuery(
+  const { data: playlist } = trpc.spotify.getPlaylist.useQuery(
     { id: selectedPlaylist?.id ?? "" },
     {
       enabled: Boolean(selectedPlaylist?.id),
-      onSuccess(data) {
-        setActiveResults(data.body.tracks.items);
-      },
     }
   );
+
+  useEffect(() => {
+    if (playlist) {
+      setActiveResults(playlist.body.tracks.items);
+    }
+  }, [playlist, setActiveResults]);
 
   return (
     <ul className="flex flex-col overflow-scroll w-60 lg:w-72">

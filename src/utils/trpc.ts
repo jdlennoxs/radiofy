@@ -26,6 +26,7 @@ const getEndingLink = () => {
   if (typeof window === "undefined") {
     return httpBatchLink({
       url,
+      transformer: superjson,
     });
   }
 
@@ -37,14 +38,16 @@ const getEndingLink = () => {
     condition(op) {
       return op.type === "subscription";
     },
-    true: wsLink<AppRouter>({ client }),
+    true: wsLink<AppRouter>({ client, transformer: superjson }),
     false: httpBatchLink({
       url,
+      transformer: superjson,
     }),
   });
 };
 
 export const trpc = createTRPCNext<AppRouter>({
+  transformer: superjson,
   config({ ctx }) {
     return {
       /**
@@ -60,10 +63,6 @@ export const trpc = createTRPCNext<AppRouter>({
         }),
         getEndingLink(),
       ],
-      /**
-       * @link https://trpc.io/docs/data-transformers
-       */
-      transformer: superjson,
       /**
        * @link https://tanstack.com/query/latest/docs/react/reference/QueryClient
        */

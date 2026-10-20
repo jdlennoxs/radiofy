@@ -1,7 +1,7 @@
 import { Listbox, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import { MegaphoneIcon } from "@heroicons/react/24/outline";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 
 type SpotifyDevice = {
@@ -13,14 +13,13 @@ type SpotifyDevice = {
 const Devices = () => {
   const utils = trpc.useUtils();
   const [activeDevice, setActiveDevice] = useState<SpotifyDevice | null>(null);
-  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery(
-    undefined,
-    {
-      onSuccess(data) {
-        setActiveDevice(data?.body.devices.find((d) => d.is_active) ?? null);
-      },
-    }
-  );
+  const { data: devices, isLoading } = trpc.spotify.getDevices.useQuery();
+
+  useEffect(() => {
+    setActiveDevice(
+      devices?.body.devices.find((d) => d.is_active) ?? null
+    );
+  }, [devices]);
   const { mutateAsync: setDevice } = trpc.spotify.setDevice.useMutation({
     onSuccess: () => {
       setTimeout(() => {
