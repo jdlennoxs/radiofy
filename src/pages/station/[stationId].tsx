@@ -89,7 +89,7 @@ const StationPage: NextPage = () => {
 
   if (!stationId) return null;
   if (!station) {
-    return <div className="p-10 text-zinc-500">Loading station…</div>;
+    return <div className="p-10 text-forest-500">Loading station…</div>;
   }
 
   const playTrack = (trackId: string) => {
@@ -153,8 +153,8 @@ function PlaylistPanel({
   onPlay: (trackId: string) => void;
 }) {
   return (
-    <section className="flex min-h-0 flex-1 flex-col rounded-xl border border-zinc-800 bg-zinc-900/60">
-      <div className="border-b border-zinc-800 px-4 py-3 text-xs uppercase tracking-wider text-zinc-500">
+    <section className="flex min-h-0 flex-1 flex-col rounded-xl border border-cream-300 bg-white">
+      <div className="border-b border-cream-300 px-4 py-3 text-xs uppercase tracking-wider text-forest-600">
         Playlist · {playlist.length} tracks
       </div>
       <ul className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -165,8 +165,8 @@ function PlaylistPanel({
               <button
                 type="button"
                 onClick={() => onPlay(track.id)}
-                className={`flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-zinc-800 ${
-                  isCurrent ? "bg-amber-500/10" : ""
+                className={`flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-cream-200 ${
+                  isCurrent ? "bg-forest-100" : ""
                 }`}
               >
                 {track.artwork ? (
@@ -177,20 +177,20 @@ function PlaylistPanel({
                     className="h-9 w-9 rounded"
                   />
                 ) : (
-                  <span className="grid h-9 w-9 place-items-center rounded bg-zinc-800 text-xs">
+                  <span className="grid h-9 w-9 place-items-center rounded bg-cream-200 text-xs text-forest-700">
                     ♪
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-zinc-100">
+                  <span className="block truncate text-sm text-forest-900">
                     {track.name}
                   </span>
-                  <span className="block truncate text-xs text-zinc-500">
+                  <span className="block truncate text-xs text-forest-600">
                     {track.artist}
                   </span>
                 </span>
                 {isCurrent && (
-                  <span className="shrink-0 text-xs text-amber-400">♪</span>
+                  <span className="shrink-0 text-xs text-forest-600">♪</span>
                 )}
               </button>
             </li>

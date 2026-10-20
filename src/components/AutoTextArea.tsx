@@ -27,7 +27,7 @@ const AutoTextArea = (props: TextareaHTMLAttributes<HTMLTextAreaElement>) => {
       rows={1}
       {...props}
       ref={textareaRef}
-      className="max-h-40 w-full resize-none rounded-lg bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none ring-1 ring-zinc-800 focus:ring-amber-500 disabled:opacity-50"
+      className="max-h-40 w-full resize-none rounded-lg bg-white px-3 py-2 text-sm text-forest-900 outline-none ring-1 ring-cream-300 placeholder:text-forest-400 focus:ring-forest-500 disabled:opacity-50"
     />
   );
 };

@@ -48,12 +48,12 @@ export default function TrackUpdate({
   const track = message.track;
   if (!track) return null;
 
-  const border = isCurrent ? "border-amber-600/60" : "border-zinc-800";
+  const border = isCurrent ? "border-forest-500" : "border-cream-300";
 
   return (
     <div
       ref={ref}
-      className={`sticky top-0 flex items-center gap-3 rounded-lg border bg-zinc-900 p-3 transition-[margin] duration-150 ease-in-out ${border} ${
+      className={`sticky top-0 flex items-center gap-3 rounded-lg border bg-white p-3 transition-[margin] duration-150 ease-in-out ${border} ${
         stuck ? "my-0" : "my-3"
       }`}
     >
@@ -61,25 +61,25 @@ export default function TrackUpdate({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={track.artwork} alt="" className="h-12 w-12 rounded" />
       ) : (
-        <span className="grid h-12 w-12 place-items-center rounded bg-zinc-800">
+        <span className="grid h-12 w-12 place-items-center rounded bg-cream-200 text-forest-700">
           ♪
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-zinc-100">
+        <p className="truncate text-sm font-medium text-forest-900">
           {track.name}
         </p>
-        <p className="truncate text-xs text-zinc-400">
+        <p className="truncate text-xs text-forest-600">
           {track.artist} · added by {message.sender.name}
         </p>
       </div>
       {isCurrent ? (
-        <span className="shrink-0 text-xs text-amber-400">playing</span>
+        <span className="shrink-0 text-xs text-forest-600">playing</span>
       ) : (
         <button
           type="button"
           onClick={() => onPlay(track.id)}
-          className="shrink-0 rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 transition hover:border-amber-600"
+          className="shrink-0 rounded border border-cream-400 px-2 py-1 text-xs text-forest-700 transition hover:border-forest-500"
         >
           Play
         </button>
