@@ -7,7 +7,11 @@ type PlaylistOption = {
   name: string;
 };
 
-const PlaylistBar = ({ setActiveResults }) => {
+const PlaylistBar = ({
+  setActiveResults,
+}: {
+  setActiveResults: (items: any) => void;
+}) => {
   const [selectedPlaylist, setSelectedPlaylist] =
     useState<PlaylistOption | null>(null);
   const { data: playlists } = trpc.spotify.getUserPlaylists.useQuery();

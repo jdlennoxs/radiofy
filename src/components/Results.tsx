@@ -1,6 +1,11 @@
 import { PlusSmallIcon } from "@heroicons/react/24/outline";
 
-const Results = ({ tracks, addToQueue }) => {
+type ResultsProps = {
+  tracks: any[];
+  addToQueue: (track: any) => void;
+};
+
+const Results = ({ tracks, addToQueue }: ResultsProps) => {
   return (
     <div className=" flex flex-row overflow-y-scroll">
       <ul>

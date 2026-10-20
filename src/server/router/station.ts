@@ -158,7 +158,7 @@ export const stationRouter = createRouter({
                 albumImage: input.track.album.images[0].url,
                 name: input.track.name,
                 artists: input.track.artists
-                  .map((artist) => artist.name)
+                  .map((artist: { name: string }) => artist.name)
                   .join(", "),
               },
             },

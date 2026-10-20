@@ -1,6 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
-const Station = ({ station }) => {
+
+type StationProps = {
+  station: {
+    id: string;
+    name?: string;
+    isLive?: boolean;
+    playbackContext?: {
+      isPlaying?: boolean | null;
+      track?: {
+        albumImage?: string | null;
+        name?: string | null;
+        artists?: string | null;
+      } | null;
+    } | null;
+  };
+};
+
+const Station = ({ station }: StationProps) => {
   const track = station.playbackContext?.track;
   const albumImage = track?.albumImage || "https://placehold.co/176x176?text=No+Track"; // Fallback image
   const trackName = track?.name || "No track playing";

@@ -2,7 +2,12 @@ import { Fragment, useState } from "react";
 import { trpc } from "../utils/trpc";
 import { Listbox, Transition, Combobox } from "@headlessui/react";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 
 import { MinusSmallIcon } from "@heroicons/react/24/solid";
 import useQueueStore from "./QueueStore";
@@ -12,12 +17,13 @@ const Queue = () => {
   const setQueue = useQueueStore((state) => state.reorderQueue);
   const removeTrack = useQueueStore((state) => state.removeTrack);
 
-  const handleDrop = (droppedItem) => {
+  const handleDrop = (droppedItem: DropResult) => {
     // Ignore drop outside droppable container
     if (!droppedItem.destination) return;
-    var updatedList = [...queue];
+    const updatedList = [...queue];
     // Remove dragged item
     const [reorderedItem] = updatedList.splice(droppedItem.source.index, 1);
+    if (!reorderedItem) return;
     // Add dropped item
     updatedList.splice(droppedItem.destination.index, 0, reorderedItem);
     // Update State
@@ -57,7 +63,7 @@ const Queue = () => {
                         <div className="flex space-x-4 items-center">
                           <img
                             className={"shadow-md rounded-lg h-12 w-12"}
-                            src={t?.album.images?.[0]?.url}
+                            src={t?.album?.images?.[0]?.url}
                             alt=""
                           />
                           <div className="flex-row justify-start">

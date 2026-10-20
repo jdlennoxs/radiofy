@@ -25,7 +25,7 @@ const MessageItem = ({
         {!isOwnMessage && showName && (
           <span className="text-xs ">{message.sender.name}</span>
         )}
-        <p className={pStyles}>{message.chat.body}</p>
+        <p className={pStyles}>{message.chat?.body}</p>
       </div>
     </li>
   );

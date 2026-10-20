@@ -20,8 +20,8 @@ const Chat = ({
 }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>();
-  const formRef = useRef(null);
-  const bottomRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   // replace with serverSideProps
   useEffect(() => {
@@ -61,7 +61,7 @@ const Chat = ({
 
   const [bbox, ref] = useRect<HTMLDivElement>();
   const [areaHeight, setAreaHeight] = useState(1);
-  const handleTextUpdate = (event) => {
+  const handleTextUpdate = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(event.target.value);
     const height = event.target.scrollHeight;
     const rowHeight = 24;
@@ -71,7 +71,7 @@ const Chat = ({
     }
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
 
