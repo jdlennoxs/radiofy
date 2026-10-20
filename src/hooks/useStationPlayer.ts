@@ -83,8 +83,18 @@ export function useStationPlayer(options: {
 
   // Bind the widget to the iframe.
   useEffect(() => {
-    if (!ready || !window.SC || !iframeRef.current) return;
-    const widget = window.SC.Widget(iframeRef.current);
+    const element = iframeRef.current;
+    if (!ready || !window.SC || !element) return;
+
+    // SC.Widget() parses the iframe's `src` to derive the player origin and
+    // throws if the attribute is missing (`getAttribute("src")` -> null).
+    // Give it a player URL before constructing the widget; `load()` replaces
+    // it with the actual track.
+    if (!element.getAttribute("src")) {
+      element.setAttribute("src", "https://w.soundcloud.com/player/?url=");
+    }
+
+    const widget = window.SC.Widget(element);
     widgetRef.current = widget;
     widget.bind(window.SC.Widget.Events.FINISH, () => onEndedRef.current());
     return () => {
