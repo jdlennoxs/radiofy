@@ -1,11 +1,10 @@
 // src/utils/trpc.ts
 import { createTRPCNext } from "@trpc/next";
 import {
-  createWSClient,
   httpBatchLink,
+  httpSubscriptionLink,
   loggerLink,
   splitLink,
-  wsLink,
 } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../server/router";
@@ -23,22 +22,14 @@ const getBaseUrl = () => {
 const getEndingLink = () => {
   const url = `${getBaseUrl()}/api/trpc`;
 
-  if (typeof window === "undefined") {
-    return httpBatchLink({
-      url,
-      transformer: superjson,
-    });
-  }
-
-  const client = createWSClient({
-    url: process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:3001",
-  });
-
   return splitLink({
     condition(op) {
       return op.type === "subscription";
     },
-    true: wsLink<AppRouter>({ client, transformer: superjson }),
+    true: httpSubscriptionLink({
+      url,
+      transformer: superjson,
+    }),
     false: httpBatchLink({
       url,
       transformer: superjson,

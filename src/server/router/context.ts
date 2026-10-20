@@ -1,12 +1,8 @@
 // src/server/router/context.ts
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import EventEmitter from "events";
-import { IncomingMessage } from "http";
 import { getServerSession } from "next-auth/next";
-import { getSession } from "next-auth/react";
-import { WebSocket } from "ws";
 import superjson from "superjson";
 
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
@@ -19,22 +15,12 @@ const spotify = (process.env.MOCK_LOGIN === "true" ? mockSpotifyApi : realSpotif
 
 const eventEmitter = new EventEmitter();
 
-export const createContext = async (
-  opts?:
-    | CreateNextContextOptions
-    | CreateWSSContextFnOptions
-) => {
+export const createContext = async (opts?: CreateNextContextOptions) => {
   const req = opts?.req;
   const res = opts?.res;
 
-  let session = null;
-  if (req && res) {
-    if ("setHeader" in (res as any)) {
-      session = await getServerSession(req as any, res as any, nextAuthOptions);
-    } else {
-      session = await getSession({ req });
-    }
-  }
+  const session =
+    req && res ? await getServerSession(req, res, nextAuthOptions) : null;
 
   const accessToken = (session as { accessToken?: string } | null)
     ?.accessToken;
