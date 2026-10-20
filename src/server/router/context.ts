@@ -1,44 +1,17 @@
 // src/server/router/context.ts
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import EventEmitter from "events";
-import { getServerSession } from "next-auth/next";
 import superjson from "superjson";
 
-import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
-import { prisma } from "../db/client";
-import { spotifyApi as realSpotify } from "../spotify/client";
-import { mockSpotifyApi } from "../spotify/mock";
-import SpotifyWebApi from "spotify-web-api-node";
+/**
+ * No auth, no session, no database. Identity travels with each mutation as a
+ * client-generated guest; station state lives in `../store`.
+ */
+export type Context = Record<string, never>;
 
-const spotify = (process.env.MOCK_LOGIN === "true" ? mockSpotifyApi : realSpotify) as unknown as SpotifyWebApi;
-
-const eventEmitter = new EventEmitter();
-
-export const createContext = async (opts?: CreateNextContextOptions) => {
-  const req = opts?.req;
-  const res = opts?.res;
-
-  const session =
-    req && res ? await getServerSession(req, res, nextAuthOptions) : null;
-
-  const accessToken = (session as { accessToken?: string } | null)
-    ?.accessToken;
-  if (accessToken) {
-    spotify.setAccessToken(accessToken);
-  }
-
-  return {
-    req,
-    res,
-    session,
-    spotify,
-    prisma,
-    eventEmitter,
-  };
-};
-
-export type Context = Awaited<ReturnType<typeof createContext>>;
+export const createContext = async (
+  _opts?: CreateNextContextOptions
+): Promise<Context> => ({});
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -46,13 +19,3 @@ const t = initTRPC.context<Context>().create({
 
 export const createRouter = t.router;
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-  return next({
-    ctx: {
-      session: ctx.session,
-    },
-  });
-});

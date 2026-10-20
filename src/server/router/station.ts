@@ -1,206 +1,90 @@
+// src/server/router/station.ts
+import { observable } from "@trpc/server/observable";
 import { createRouter, publicProcedure } from "./context";
 import {
-  Message,
   playTrackSchema,
+  presenceSchema,
   sendMessageSchema,
-  stationSubscriptionSchema,
+  setPlayingSchema,
+  stationIdSchema,
+  trackEndedSchema,
+  type Message,
+  type Playback,
 } from "../../constants/schema";
-import { Events } from "../../constants/events";
-import { z } from "zod";
-import { observable } from "@trpc/server/observable";
+import * as store from "../store";
 
 export const stationRouter = createRouter({
-  getStation: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      })
-    )
-    .query(async ({ input, ctx }) => {
-      return ctx.prisma.station.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          playbackContext: true,
-          messages: {
-            include: {
-              chat: true,
-              track: true,
-              sender: {
-                select: {
-                  name: true,
-                  id: true,
-                },
-              },
-            },
-            take: 100,
-            orderBy: { created: "asc" },
-          },
-        },
-      });
-    }),
-  getPublic: publicProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.station.findMany({
-      where: {
-        isPublic: true,
-      },
-      orderBy: {
-        listenerCount: "desc",
-      },
-      take: 20,
-      include: {
-        playbackContext: true,
-      },
-    });
-  }),
-  search: publicProcedure
-    .input(
-      z.object({
-        query: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      return ctx.prisma.station.findMany({
-        where: {
-          name: {
-            contains: input.query,
-          },
-          isPublic: true,
-        },
-        include: {
-          playbackContext: true,
-        },
-      });
-    }),
+  list: publicProcedure.query(() => store.listStations()),
+
+  get: publicProcedure
+    .input(stationIdSchema)
+    .query(({ input }) => store.getStation(input.stationId)),
+
   sendMessage: publicProcedure
     .input(sendMessageSchema)
-    .mutation(async ({ ctx, input }) => {
-      const userId = (ctx.session?.user as { id?: string } | undefined)?.id;
-      if (userId) {
-        const message = await ctx.prisma.message.create({
-          data: {
-            id: input.id,
-            type: "CHAT",
-            created: new Date().toISOString(),
-            station: {
-              connect: {
-                id: input.stationId,
-              },
-            },
-            sender: {
-              connect: {
-                id: userId,
-              },
-            },
-            chat: {
-              create: {
-                body: input.message,
-              },
-            },
-          },
-          include: {
-            chat: { select: { body: true } },
-            track: true,
-            sender: {
-              select: {
-                name: true,
-                id: true,
-              },
-            },
-          },
+    .mutation(({ input }) => {
+      store.addMessage(input.stationId, {
+        type: "CHAT",
+        sender: input.guest,
+        body: input.message,
+      });
+    }),
+
+  play: publicProcedure.input(playTrackSchema).mutation(({ input }) => {
+    store.play(input.stationId, input.trackId, input.guest);
+  }),
+
+  next: publicProcedure.input(stationIdSchema).mutation(({ input }) => {
+    store.advance(input.stationId);
+  }),
+
+  setPlaying: publicProcedure
+    .input(setPlayingSchema)
+    .mutation(({ input }) => {
+      store.setPlaying(input.stationId, input.isPlaying);
+    }),
+
+  trackEnded: publicProcedure
+    .input(trackEndedSchema)
+    .mutation(({ input }) => {
+      store.advance(input.stationId, input.trackId);
+    }),
+
+  onMessage: publicProcedure
+    .input(stationIdSchema)
+    .subscription(({ input }) =>
+      observable<Message>((emit) => {
+        return store.onMessage((stationId, message) => {
+          if (stationId === input.stationId) emit.next(message);
+        });
+      })
+    ),
+
+  onPlayback: publicProcedure
+    .input(stationIdSchema)
+    .subscription(({ input }) =>
+      observable<Playback>((emit) => {
+        return store.onPlayback((stationId, playback) => {
+          if (stationId === input.stationId) emit.next(playback);
+        });
+      })
+    ),
+
+  onPresence: publicProcedure
+    .input(presenceSchema)
+    .subscription(({ input }) =>
+      observable<number>((emit) => {
+        store.addListener(input.stationId, input.guestId);
+        emit.next(store.getStation(input.stationId)?.listenerCount ?? 0);
+
+        const off = store.onPresence((stationId, count) => {
+          if (stationId === input.stationId) emit.next(count);
         });
 
-        ctx.eventEmitter.emit(Events.SEND_MESSAGE, message);
-      }
-    }),
-  onSendMessage: publicProcedure
-    .input(stationSubscriptionSchema)
-    .subscription(({ ctx, input }) => {
-      return observable<Message>((emit) => {
-        function onMessage(data: Message) {
-          if (input.stationId === data.stationId) {
-            emit.next(data);
-          }
-        }
-
-        ctx.eventEmitter.on(Events.SEND_MESSAGE, onMessage);
-
         return () => {
-          ctx.eventEmitter.off(Events.SEND_MESSAGE, onMessage);
+          off();
+          store.removeListener(input.stationId, input.guestId);
         };
-      });
-    }),
-  play: publicProcedure.input(playTrackSchema).mutation(async ({ ctx, input }) => {
-    const userId = (ctx.session?.user as { id?: string } | undefined)?.id;
-    if (userId) {
-      const track = await ctx.prisma.message.create({
-        data: {
-          type: "TRACK",
-          created: new Date().toISOString(),
-          station: {
-            connect: {
-              id: input.stationId,
-            },
-          },
-          sender: {
-            connect: {
-              id: userId,
-            },
-          },
-          track: {
-            connectOrCreate: {
-              where: {
-                id: input.track.id,
-              },
-              create: {
-                id: input.track.id,
-                albumImage: input.track.album.images[0].url,
-                name: input.track.name,
-                artists: input.track.artists
-                  .map((artist: { name: string }) => artist.name)
-                  .join(", "),
-              },
-            },
-          },
-        },
-        include: {
-          chat: { select: { body: true } },
-          track: true,
-          sender: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-      });
-      await ctx.prisma.playbackContext.update({
-        where: {
-          stationId: input.stationId,
-        },
-        data: {
-          trackId: track.trackId,
-          startTime: Math.floor(Date.now() / 1000),
-          isPlaying: true,
-        },
-      });
-      ctx.eventEmitter.emit(Events.PLAY_TRACK, track.trackId);
-      ctx.eventEmitter.emit(Events.SEND_MESSAGE, track);
-    }
-  }),
-  onPlay: publicProcedure.subscription(({ ctx }) => {
-    return observable<string>((emit) => {
-      function onPlay(data: string) {
-        emit.next("goes to front end");
-        ctx.spotify.play({ uris: [`spotify:track:${data}`] });
-      }
-
-      ctx.eventEmitter.on(Events.PLAY_TRACK, onPlay);
-
-      return () => {
-        ctx.eventEmitter.off(Events.PLAY_TRACK, onPlay);
-      };
-    });
-  }),
+      })
+    ),
 });
