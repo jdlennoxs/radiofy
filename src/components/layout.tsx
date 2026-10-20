@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useSpotifyWebPlaybackSdk } from "../hooks/useSpotifyWebPlaybackSdk";
+import Header from "./Header";
 
 export default function Layout({ children }) {
   const { data: session } = useSession();
@@ -11,7 +12,10 @@ export default function Layout({ children }) {
 
   return (
     <>
-      <main>{children}</main>
+      <main>
+        <Header />
+        {children}
+      </main>
     </>
   );
 }
