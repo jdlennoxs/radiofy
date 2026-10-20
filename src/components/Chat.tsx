@@ -1,174 +1,89 @@
-import { Message } from "../constants/schema";
-import { useEffect, useRef, useState } from "react";
-import { trpc } from "../utils/trpc";
-import TrackUpdate from "./TrackUpdate";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { Guest, Message } from "../constants/schema";
 import MessageItem from "./MessageItem";
-import { Session } from "next-auth";
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import AutoTextArea from "./AutoTextArea";
-import Devices from "./Devices";
-import Volume from "./Volume";
-import Playback from "./Playback";
-import { useRect } from "../hooks/useRect";
+import TrackUpdate from "./TrackUpdate";
 
-const Chat = ({
-  station,
-  session,
-}: {
-  station: any;
-  session: Session;
-}) => {
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>();
-  const formRef = useRef<HTMLFormElement>(null);
+type Props = {
+  messages: Message[];
+  guest: Guest | null;
+  currentTrackId: string | null;
+  onSend: (body: string) => void;
+  onPlayTrack: (trackId: string) => void;
+};
+
+export default function Chat({
+  messages,
+  guest,
+  currentTrackId,
+  onSend,
+  onPlayTrack,
+}: Props) {
+  const [value, setValue] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // replace with serverSideProps
   useEffect(() => {
-    if (station) {
-      setMessages(station.messages);
-    }
-  }, [station]);
-
-  const { mutateAsync: sendMessageMutation } =
-    trpc.station.sendMessage.useMutation();
-
-  const stationId = station?.id ?? "";
-  trpc.station.onSendMessage.useSubscription(
-    { stationId },
-    {
-      enabled: Boolean(station?.id),
-      onData: (message) => {
-        setMessages((current = []) => {
-          if (current.some((m) => m.id === message.id)) {
-            return current;
-          }
-          return [...current, message];
-        });
-      },
-    }
-  );
-  trpc.station.onPlay.useSubscription(undefined, {
-    onData(data) {
-      console.log(data);
-    },
-  });
-
-  useEffect(() => {
-    // 👇️ scroll to bottom every time messages change
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages.length]);
 
-  const [bbox, ref] = useRect<HTMLDivElement>();
-  const [areaHeight, setAreaHeight] = useState(1);
-  const handleTextUpdate = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(event.target.value);
-    const height = event.target.scrollHeight;
-    const rowHeight = 24;
-    const trows = Math.min(Math.max(1, Math.ceil(height / rowHeight) - 1), 5);
-    if (trows !== areaHeight) {
-      setAreaHeight(trows);
-    }
-  };
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-
-    const tempId = crypto.randomUUID();
-    const optimisticMessage: Message = {
-      id: tempId,
-      stationId: station.id,
-      chat: { body: message },
-      created: new Date(),
-      type: "CHAT",
-      sender: {
-        id: (session?.user as any)?.id || "temp-id",
-        name: session?.user?.name || "Me",
-      },
-    };
-
-    setMessages((current = []) => [...current, optimisticMessage]);
-
-    sendMessageMutation({ stationId: station.id, message, id: tempId });
-    setMessage("");
-    setAreaHeight(1);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      formRef.current?.requestSubmit();
-    }
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const body = value.trim();
+    if (!body) return;
+    onSend(body);
+    setValue("");
   };
 
   return (
-    <div className="flex flex-col flex-grow bg-zinc-50">
-      <div className="overflow-y-scroll">
-        {messages && (
-          <ul className={`flex flex-col`}>
-            {messages.map((message, index) => {
-              const previousMessage = messages[index - 1];
-              const showName =
-                !previousMessage || previousMessage.sender.id !== message.sender.id;
-              return (
-                <>
-                  {message.type === "CHAT" ? (
-                    <MessageItem
-                      key={message.id}
-                      message={message}
-                      session={session}
-                      showName={showName}
-                    />
-                  ) : (
-                    <TrackUpdate
-                      isCurrentlyPlaying
-                      key={message.id}
-                      message={message}
-                    />
-                  )}
-                </>
-              );
-            })}
-          </ul>
+    <section className="flex min-h-0 flex-1 flex-col rounded-xl border border-zinc-800 bg-zinc-900/60">
+      <div className="border-b border-zinc-800 px-4 py-3 text-xs uppercase tracking-wider text-zinc-500">
+        Timeline
+      </div>
+
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+        {messages.length === 0 && (
+          <p className="text-sm text-zinc-600">
+            No messages yet — say hello, or put a track on.
+          </p>
+        )}
+        {messages.map((message) =>
+          message.type === "CHAT" ? (
+            <MessageItem
+              key={message.id}
+              message={message}
+              isOwn={message.sender.id === guest?.id}
+            />
+          ) : (
+            <TrackUpdate
+              key={message.id}
+              message={message}
+              isCurrent={message.track?.id === currentTrackId}
+              onPlay={onPlayTrack}
+            />
+          )
         )}
         <div ref={bottomRef} />
       </div>
 
-      <div ref={ref} className="sticky top-[100vh] p-4 bg-zinc-900 w-full">
-        <form ref={formRef} className="flex items-center" onSubmit={onSubmit}>
-          <div className="flex-1">
-            <AutoTextArea
-              value={message}
-              onChange={handleTextUpdate}
-              onKeyDown={handleKeyDown}
-              placeholder="Message"
-            />
-          </div>
-          <button
-            className={`flex-none p-4 rounded-full ml-4 transition-colors ${!message.trim()
-              ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-              : "text-amber-600 bg-amber-100 hover:bg-amber-200"
-              }`}
-            type="submit"
-            disabled={!message.trim()}
-          >
-            <span className="flex items-center">
-              <PaperAirplaneIcon
-                className="h-5 w-5 rotate-[-45deg]"
-                aria-hidden="true"
-              />
-            </span>
-          </button>
-        </form>
-        <div className="flex justify-between md:mr-14">
-          <Devices />
-          <Playback />
-          <Volume />
-        </div>
-      </div>
-    </div>
+      <form
+        onSubmit={submit}
+        className="flex items-center gap-2 border-t border-zinc-800 p-3"
+      >
+        <input
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          maxLength={500}
+          disabled={!guest}
+          placeholder={guest ? `Message as ${guest.name}` : "Loading…"}
+          className="min-w-0 flex-1 rounded-lg bg-zinc-950 px-3 py-2 text-sm outline-none ring-1 ring-zinc-800 focus:ring-amber-500 disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={!value.trim()}
+          className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-amber-400 disabled:opacity-40"
+        >
+          Send
+        </button>
+      </form>
+    </section>
   );
-};
-
-export default Chat;
+}
