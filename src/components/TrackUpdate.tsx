@@ -1,49 +1,52 @@
-import { Message } from "../constants/schema";
-import { useRect } from "../hooks/useRect";
-import FireButton from "./FireButton";
-import LikeButton from "./LikeButton";
+import type { Message } from "../constants/schema";
 
-const TrackUpdate = ({
-  isCurrentlyPlaying,
+export default function TrackUpdate({
   message,
+  isCurrent,
+  onPlay,
 }: {
   message: Message;
-  isCurrentlyPlaying: boolean;
-}) => {
-  const [bbox, ref] = useRect<HTMLElement>();
-  if (!message.track) {
-    return null;
-  }
+  isCurrent: boolean;
+  onPlay: (trackId: string) => void;
+}) {
   const track = message.track;
-  return (
-    <section
-      ref={ref}
-      className={`items-end space-x-7 p-4 transition-[background] duration-150 ease-in-out ${bbox?.top === 0
-          ? "bg-white z-10"
-          : "bg-white border border-zinc-200 rounded-lg m-4 "
-        } ${isCurrentlyPlaying && "sticky top-0"}`}
-    >
-      <div className="flex justify-between">
-        <div className="flex items-center space-x-4">
-          <img
-            className={`transition-image duration-150 ease-in-out shadow-md rounded-lg h-24 w-24`}
-            src={track.albumImage}
-            alt=""
-          />
-          <div>
-            <h3 className="text-zinc-900 font-semibold">
-              {track.name}
-            </h3>
-            <p className="text-zinc-700">{track.artists}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <LikeButton song={{ id: track.id }} />
-          <FireButton />
-        </div>
-      </div>
-    </section>
-  );
-};
+  if (!track) return null;
 
-export default TrackUpdate;
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-lg border p-3 ${
+        isCurrent
+          ? "border-amber-600/60 bg-amber-500/10"
+          : "border-zinc-800 bg-zinc-900"
+      }`}
+    >
+      {track.artwork ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={track.artwork} alt="" className="h-12 w-12 rounded" />
+      ) : (
+        <span className="grid h-12 w-12 place-items-center rounded bg-zinc-800">
+          ♪
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-zinc-100">
+          {track.name}
+        </p>
+        <p className="truncate text-xs text-zinc-400">
+          {track.artist} · added by {message.sender.name}
+        </p>
+      </div>
+      {isCurrent ? (
+        <span className="shrink-0 text-xs text-amber-400">playing</span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onPlay(track.id)}
+          className="shrink-0 rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 transition hover:border-amber-600"
+        >
+          Play
+        </button>
+      )}
+    </div>
+  );
+}

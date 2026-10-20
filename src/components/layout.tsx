@@ -1,22 +1,11 @@
-import { useSession } from "next-auth/react";
-import { useSpotifyWebPlaybackSdk } from "../hooks/useSpotifyWebPlaybackSdk";
-import Header from "./Header";
 import type { ReactNode } from "react";
+import Header from "./Header";
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const { data: session } = useSession();
-
-  useSpotifyWebPlaybackSdk({
-    name: "Radio Station",
-    accessToken: (session as { accessToken?: string } | null)?.accessToken,
-  });
-
   return (
-    <>
-      <main>
-        <Header />
-        {children}
-      </main>
-    </>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <Header />
+      <main className="pt-16">{children}</main>
+    </div>
   );
 }

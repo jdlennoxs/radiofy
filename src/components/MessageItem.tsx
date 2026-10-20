@@ -1,33 +1,26 @@
-import { Message } from "../constants/schema";
-import { Session } from "next-auth";
+import type { Message } from "../constants/schema";
 
-const MessageItem = ({
+export default function MessageItem({
   message,
-  session,
-  showName,
+  isOwn,
 }: {
   message: Message;
-  session: Session;
-  showName: boolean;
-}) => {
-  const isOwnMessage =
-    message.sender.id === (session.user as { id?: string } | null)?.id;
-  const styles = " max-w-[70%] md:max-w-7/12 p-2 mx-4 text-zinc-800";
-  const liStyles = isOwnMessage
-    ? styles.concat(" self-end")
-    : styles.concat(" self-start");
-  const pStyles = isOwnMessage
-    ? "border border-amber-200 bg-amber-100 rounded-lg p-2"
-    : "border border-zinc-200 bg-white rounded-lg p-2";
+  isOwn: boolean;
+}) {
   return (
-    <li className={liStyles}>
-      <div className="flex-row">
-        {!isOwnMessage && showName && (
-          <span className="text-xs ">{message.sender.name}</span>
+    <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
+          isOwn ? "bg-amber-500/90 text-zinc-900" : "bg-zinc-800 text-zinc-100"
+        }`}
+      >
+        {!isOwn && (
+          <div className="mb-0.5 text-xs font-semibold text-amber-400">
+            {message.sender.name}
+          </div>
         )}
-        <p className={pStyles}>{message.chat?.body}</p>
+        <p className="whitespace-pre-wrap break-words">{message.chat?.body}</p>
       </div>
-    </li>
+    </div>
   );
-};
-export default MessageItem;
+}

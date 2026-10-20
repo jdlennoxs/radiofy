@@ -1,49 +1,62 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useState } from "react";
+import { useGuest } from "../hooks/useGuest";
 
-const Header = () => {
-  const { data: session } = useSession();
-  const [isOpen, setIsOpen] = useState(false);
+export default function Header() {
+  const { guest, rename } = useGuest();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
 
   return (
-    <div className="fixed top-4 left-4 z-50">
-      {session ? (
-        <div className="relative">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="focus:outline-none block"
-            title={session?.user?.name || "User menu"}
+    <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-zinc-800 bg-zinc-950/90 px-5 backdrop-blur">
+      <Link
+        href="/"
+        className="flex items-center gap-2 text-lg font-semibold tracking-tight hover:text-amber-400"
+      >
+        <span aria-hidden className="text-xl">
+          🔥
+        </span>
+        Campfire
+      </Link>
+
+      {guest &&
+        (editing ? (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              rename(value);
+              setEditing(false);
+            }}
+            className="flex items-center gap-2"
           >
-            <img
-              className="rounded-full w-10 h-10 border-2 border-transparent hover:border-zinc-400 transition-colors shadow-lg"
-              src={session?.user?.image || ""}
-              alt={session?.user?.name || "User"}
+            <input
+              autoFocus
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              placeholder={guest.name}
+              maxLength={32}
+              className="w-36 rounded bg-zinc-900 px-2 py-1 text-sm outline-none ring-1 ring-zinc-700 focus:ring-amber-500"
             />
+            <button type="submit" className="text-xs text-amber-400">
+              save
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setValue(guest.name);
+              setEditing(true);
+            }}
+            title="Change display name"
+            className="flex items-center gap-2 text-sm text-zinc-300 hover:text-white"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-zinc-800 text-xs uppercase">
+              {guest.name.slice(0, 2)}
+            </span>
+            {guest.name}
           </button>
-
-          {isOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setIsOpen(false)}
-              ></div>
-              <div className="absolute left-0 mt-2 w-48 bg-zinc-900 rounded-md shadow-xl py-1 z-20 border border-zinc-700">
-                <div className="px-4 py-2 text-sm text-zinc-400 border-b border-zinc-800 font-medium">
-                  {session?.user?.name}
-                </div>
-                <button
-                  onClick={() => signOut()}
-                  className="block w-full text-left px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
-                >
-                  Sign out
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      ) : null}
-    </div>
+        ))}
+    </header>
   );
-};
-
-export default Header;
+}
