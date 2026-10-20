@@ -1,12 +1,15 @@
+import { useEffect, useRef, useState } from "react";
 import type { Message } from "../constants/schema";
-import { useRect } from "../hooks/useRect";
 
 /**
  * A track in the timeline. Every track row is sticky, not just the current one:
  * as the timeline scrolls, each track pins to the top and the next one covers
- * it, so the newest tracks stack at the top. `useRect` detects when a row has
- * actually stuck (`top === 0`) and swaps in an opaque background so it hides the
- * messages scrolling beneath it.
+ * it, so the newest tracks stack at the top. Once a row has stuck it goes fully
+ * opaque and drops its top margin, so stacked rows abut cleanly and hide the
+ * messages scrolling beneath them.
+ *
+ * "Stuck" is measured against the timeline's own scroll container (not the
+ * window): the row's top edge reaching the container's top edge.
  *
  * `isCurrent` only drives the "playing" highlight.
  */
@@ -19,24 +22,47 @@ export default function TrackUpdate({
   isCurrent: boolean;
   onPlay: (trackId: string) => void;
 }) {
-  const [bbox, ref] = useRect<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>(null);
+  const [stuck, setStuck] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const container = element.closest<HTMLElement>("[data-timeline-scroll]");
+    const update = () => {
+      const elementTop = element.getBoundingClientRect().top;
+      const containerTop = container?.getBoundingClientRect().top ?? 0;
+      setStuck(elementTop <= containerTop + 1);
+    };
+
+    update();
+    // Capture phase: scroll doesn't bubble, but a capturing listener on window
+    // still sees scrolls from inner scroll containers.
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   const track = message.track;
   if (!track) return null;
 
-  const stuck = bbox?.top === 0;
-  const background = stuck
-    ? "z-10 bg-zinc-950"
-    : isCurrent
-      ? "bg-amber-500/10"
-      : "bg-zinc-900";
   const border = isCurrent ? "border-amber-600/60" : "border-zinc-800";
+
+  // Stuck: a full-bleed band pinned to the top — margin, corners and the
+  // side/top border all drop away, background goes opaque. Animating those
+  // properties is what makes the pin feel slick.
+  const state = stuck
+    ? `z-10 mx-0 my-0 rounded-none border-x-0 border-t-0 bg-zinc-950 ${border}`
+    : `mx-4 my-3 rounded-lg ${isCurrent ? "bg-amber-950" : "bg-zinc-900"} ${border}`;
 
   return (
     <div
       ref={ref}
-      className={`sticky top-0 flex items-center gap-3 rounded-lg border p-3 transition-[background] duration-150 ease-in-out ${border} ${background} ${
-        stuck ? "my-0" : "my-3"
-      }`}
+      className={`sticky top-0 flex items-center gap-3 border p-3 transition-[background-color,border-color,border-radius,margin] duration-200 ease-in-out ${state}`}
     >
       {track.artwork ? (
         // eslint-disable-next-line @next/next/no-img-element
