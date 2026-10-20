@@ -1,27 +1,17 @@
 import type { RefObject } from "react";
 import type { Track } from "../constants/schema";
 
+/**
+ * Display panel for the room's current track. Transport lives at the bottom of
+ * the timeline (see Chat); this only shows what is playing.
+ */
 type Props = {
   track: Track | null;
-  isPlaying: boolean;
   listenerCount: number;
-  volume: number;
   iframeRef: RefObject<HTMLIFrameElement | null>;
-  onToggle: () => void;
-  onNext: () => void;
-  onVolume: (volume: number) => void;
 };
 
-export default function NowPlaying({
-  track,
-  isPlaying,
-  listenerCount,
-  volume,
-  iframeRef,
-  onToggle,
-  onNext,
-  onVolume,
-}: Props) {
+export default function NowPlaying({ track, listenerCount, iframeRef }: Props) {
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
       <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-wider text-zinc-500">
@@ -50,34 +40,6 @@ export default function NowPlaying({
             {track?.artist ?? "Pick a track to start the room"}
           </p>
         </div>
-      </div>
-
-      <div className="mt-5 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={!track}
-          className="rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-amber-400 disabled:opacity-40"
-        >
-          {isPlaying ? "Pause" : "Play"}
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!track}
-          className="rounded-full border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition hover:border-amber-600 disabled:opacity-40"
-        >
-          Next
-        </button>
-        <input
-          aria-label="Volume"
-          type="range"
-          min={0}
-          max={100}
-          value={volume}
-          onChange={(event) => onVolume(Number(event.target.value))}
-          className="ml-auto w-28 accent-amber-400"
-        />
       </div>
 
       {/*

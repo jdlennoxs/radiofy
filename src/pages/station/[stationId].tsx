@@ -115,13 +115,8 @@ const StationPage: NextPage = () => {
       <div className="flex min-h-0 flex-col gap-5">
         <NowPlaying
           track={currentTrack}
-          isPlaying={playback.isPlaying}
           listenerCount={listenerCount}
-          volume={volume}
           iframeRef={iframeRef}
-          onToggle={toggle}
-          onNext={() => next.mutate({ stationId })}
-          onVolume={setVolume}
         />
         <PlaylistPanel
           playlist={station.playlist}
@@ -138,6 +133,11 @@ const StationPage: NextPage = () => {
           guest && sendMessage.mutate({ stationId, guest, message: body })
         }
         onPlayTrack={playTrack}
+        isPlaying={playback.isPlaying}
+        onToggle={toggle}
+        onNext={() => next.mutate({ stationId })}
+        volume={volume}
+        onVolume={setVolume}
       />
     </div>
   );

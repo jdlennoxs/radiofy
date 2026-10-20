@@ -1,5 +1,11 @@
 import type { Message } from "../constants/schema";
+import { useRect } from "../hooks/useRect";
 
+/**
+ * A track in the timeline. When it is the currently playing track it sticks to
+ * the top of the timeline and goes opaque once stuck (so messages scroll under
+ * it) — restored from the original chat.
+ */
 export default function TrackUpdate({
   message,
   isCurrent,
@@ -9,15 +15,22 @@ export default function TrackUpdate({
   isCurrent: boolean;
   onPlay: (trackId: string) => void;
 }) {
+  const [bbox, ref] = useRect<HTMLDivElement>();
   const track = message.track;
   if (!track) return null;
 
+  const stuck = bbox?.top === 0;
+  const background = isCurrent
+    ? stuck
+      ? "border-amber-600/60 bg-zinc-950"
+      : "border-amber-600/60 bg-amber-500/10"
+    : "border-zinc-800 bg-zinc-900";
+
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border p-3 ${
-        isCurrent
-          ? "border-amber-600/60 bg-amber-500/10"
-          : "border-zinc-800 bg-zinc-900"
+      ref={ref}
+      className={`flex items-center gap-3 rounded-lg border p-3 transition-[background] duration-150 ease-in-out ${background} ${
+        isCurrent ? "sticky top-0 z-20" : ""
       }`}
     >
       {track.artwork ? (
