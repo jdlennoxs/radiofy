@@ -1,113 +1,86 @@
-# Radiofy
+# Campfire
 
-Radiofy is a Next.js (T3-stack) application for creating shared listening “stations” powered by Spotify. Users sign in with Spotify, browse their stations, and join a station to chat and control playback. The app uses tRPC for type-safe APIs, Prisma for data storage, and a WebSocket server for real-time station updates and playback events.
+A shared listening room. Open a station, and everyone in it hears the same
+track at the same position while talking over it in a live timeline. No
+account, no sign-in — pick a display name and join.
 
-## What’s inside
+Originally built on Spotify (auth + Web Playback SDK). Spotify's February 2026
+developer changes capped Development Mode apps at **five allowlisted users** and
+closed Extended Quota Mode to individuals, so it could never be opened to a real
+audience. The Spotify version is preserved at tag `archive/spotify-v1`.
 
-- **Next.js + React** for the UI and routing.
-- **tRPC** for end-to-end types between client and server.
-- **NextAuth (Spotify provider)** for authentication and Spotify token management.
-- **Prisma + SQLite** for the database layer.
-- **WebSocket server** for live subscriptions (chat + playback events).
-- **Tailwind CSS** for styling.
+Campfire now runs **guest-only**, with an **in-process station store** and
+**SoundCloud** playback. The decision is written up in
+[`research/ADR-003-PORTFOLIO-PIVOT.md`](research/ADR-003-PORTFOLIO-PIVOT.md).
 
-## Key directories
+## What's interesting here
 
-- `src/pages`: Next.js pages (home, station view) and API routes.
-- `src/components`: Reusable UI components for chat, playback, playlists, etc.
-- `src/server`: tRPC routers, Prisma client, Spotify API client, and WS server.
-- `src/hooks`: Custom hooks (Spotify Web Playback SDK).
-- `prisma`: Database schema and Prisma artifacts.
-- `src/constants`: Shared schemas and event names.
+- **Server-authoritative playback sync.** The server owns
+  `{ trackId, startedAt, isPlaying }`. A late joiner seeks to
+  `now − startedAt`; clients re-seek if they drift more than three seconds.
+- **Realtime with no realtime service.** tRPC v11 subscriptions run over **SSE**
+  through a normal HTTP handler — one process, no WebSocket server, no port 3001.
+- **No database.** Station state is a `Map` in the process. The single-process
+  SSE design is exactly what makes that viable.
+- **No auth.** Guest identity is a client-generated id + name in `localStorage`.
+- **Music without an API key.** SoundCloud's Widget API drives the public embed
+  directly (play / pause / seek / volume + a `FINISH` event); track metadata
+  comes from the public oEmbed endpoint.
 
-## Development
+## Stack
 
-### Prerequisites
+Next 16 (Pages Router) · React 19 · tRPC v11 · TanStack Query v5 · superjson ·
+Tailwind · TypeScript (strict) · Vitest · GitHub Actions.
 
-- Node.js (version compatible with Next.js 12)
-- pnpm (recommended by the repo’s lockfile)
+## Architecture
 
-### Install dependencies
+```text
+browser ── httpBatchLink ──────────────┐
+                                       ├─ /api/trpc/[trpc] ─ tRPC router ─ store (Map + EventEmitter)
+browser ── httpSubscriptionLink (SSE) ─┘
+                    ▲
+        useStationPlayer ── SoundCloud Widget (hidden iframe)
+```
+
+- `src/server/store.ts` — in-memory stations: messages, playlist, playback, presence
+- `src/server/router/station.ts` — list · get · sendMessage · play · next · setPlaying · trackEnded, plus message/playback/presence subscriptions
+- `src/hooks/useStationPlayer.ts` — SoundCloud widget, late-join seek, drift correction, end-of-track advance
+- `src/hooks/useGuest.ts` — localStorage identity
+- `src/server/seed.ts` — the curated SoundCloud library (add tracks by permalink)
+- `research/` — ADR-001 (Go port — rejected), ADR-002 (stay on TS + uplift), ADR-003 (this pivot), plus a red-team codebase appraisal
+
+## Run it
 
 ```bash
 pnpm install
+pnpm dev        # http://localhost:3000
 ```
 
-### Environment variables
-
-Set the following environment variables (usually via `.env`):
-
-```
-SPOTIFY_CLIENT_ID=...
-SPOTIFY_CLIENT_SECRET=...
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=...
-NEXT_PUBLIC_WS_URL=ws://localhost:3001
-```
-
-### Run the app
-
-Run both the Next.js app and WebSocket server:
+No environment variables or secrets are required. To see the sync for yourself,
+open the same station in two browser windows and put a track on.
 
 ```bash
-pnpm dev
+pnpm build && pnpm start     # production
+pnpm tsc --noEmit            # typecheck
+pnpm exec vitest run         # tests
 ```
 
-That command runs:
+## Limits (deliberate)
 
-- `pnpm dev:next` (Next.js)
-- `pnpm dev:ws` (tRPC WebSocket server)
+- **Single instance.** In-memory state means this runs in one process;
+  multi-instance would need shared state (Redis/Postgres).
+- **No history.** Messages reset when the server restarts.
+- **SoundCloud is someone else's platform.** Listeners aren't gated, but
+  free-tier users may hear SoundCloud ads, and an artist can disable embedding
+  on a track.
+- **Autoplay.** Browsers require a user gesture; the first click in a room
+  starts playback.
 
-### Build and start
+## A short history
 
-```bash
-pnpm build
-pnpm start
-```
+This repo also contains the engineering decisions behind it:
 
-## Helpful pointers
-
-- **tRPC routers**: `src/server/router`
-- **Spotify integration**: `src/server/router/spotify.ts` and `src/hooks/useSpotifyWebPlaybackSdk.ts`
-- **Auth config**: `src/pages/api/auth/[...nextauth].ts`
-- **DB models**: `prisma/schema.prisma`
-
-## Current state (as inferred)
-
-The project has a solid scaffold for stations, chat, and Spotify playback, but some of the intended user flow is only partially implemented.
-
-**What’s working today**
-- Spotify authentication with NextAuth is in place.
-- Stations can be loaded from the database.
-- Chat messages are persisted and broadcast via tRPC subscriptions.
-- A WebSocket server exists to back tRPC subscriptions.
-- A Spotify Web Playback SDK hook initializes a player device.
-
-**What appears incomplete or missing**
-- Station “join” flow is minimal (no explicit membership model or join logic).
-- Playback synchronization across listeners is not fully implemented (playback context exists, but client sync logic is minimal).
-- Queueing and voting workflows are not present.
-- Ownership/admin flows (e.g., queue management) are not implemented in the UI.
-
-## Intended experience (goal state)
-
-The desired flow sounds like:
-
-1. **Listeners join a station** and automatically sync playback to the station’s current track/time.
-2. **Station owners queue tracks** and everyone advances to the next track together.
-3. **Live chat + voting** on tracks in real time.
-
-## Next steps to reach the goal
-
-Suggested areas to build out next:
-
-- **Station membership & join flow**: add a join endpoint + UI and optionally store memberships in the DB.
-- **Playback sync**: broadcast track start + timestamp from the server and align clients.
-- **Queue + voting**: define queue/vote models and expose them via tRPC, then wire UI.
-- **Owner controls**: surface admin actions for station owners (start/stop/skip, reorder queue, etc.).
-
-## Next steps for newcomers
-
-- Trace a station flow: UI (`src/pages/station/[stationId].tsx`) → tRPC (`src/server/router/station.ts`) → database (`prisma/schema.prisma`).
-- Explore how the Web Playback SDK and Spotify API are used together.
-- Add tests or improve validation on inputs where needed.
+- `research/CODEBASE-APPRAISAL.md` — a red-team review of the original app
+- `research/ADR-001-GO-PORT-PLAN.md` — a Go rewrite, evaluated and rejected on cost
+- `research/ADR-002-STAY-ON-TRPC-SUPABASE.md` — staying on TypeScript and the staged Next/tRPC/React uplift
+- `research/ADR-003-PORTFOLIO-PIVOT.md` — freezing Spotify and the guest-only rebuild
