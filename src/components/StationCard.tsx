@@ -11,8 +11,8 @@ type Station = {
 
 /**
  * Card for the station list: full-bleed album art for the top playlist entry,
- * a white info panel with name / summary / listeners, and a campfire bubble
- * sitting on the seam between the two, towards the right.
+ * a white info panel with name / summary, and a campfire bubble carrying the
+ * listener count, straddling the seam towards the right.
  */
 export default function StationCard({ station }: { station: Station }) {
   return (
@@ -37,24 +37,16 @@ export default function StationCard({ station }: { station: Station }) {
         </div>
 
         {/* Straddles the image / summary boundary, close to the right edge. */}
-        <span
-          aria-hidden
-          className="absolute bottom-0 right-5 grid h-12 w-12 translate-y-1/2 place-items-center rounded-full bg-black text-xl shadow-lg ring-2 ring-white"
-        >
-          🔥
+        <span className="absolute bottom-0 right-5 flex translate-y-1/2 items-center gap-1.5 rounded-full bg-black px-3 py-2 text-sm font-semibold text-cream-50 shadow-lg ring-2 ring-white">
+          <span aria-hidden>🔥 × {station.listenerCount}</span>
+          <span className="sr-only">{station.listenerCount} listening</span>
         </span>
       </div>
 
       <div className="flex flex-col gap-1 bg-white p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="truncate text-base font-semibold text-forest-900 group-hover:text-forest-600">
-            {station.name}
-          </h2>
-          <span className="flex shrink-0 items-center gap-1 text-xs text-forest-600">
-            <span className="h-2 w-2 rounded-full bg-forest-500" />
-            {station.listenerCount}
-          </span>
-        </div>
+        <h2 className="truncate text-base font-semibold text-forest-900 group-hover:text-forest-600">
+          {station.name}
+        </h2>
         <p className="line-clamp-2 text-sm text-forest-600">
           {station.description}
         </p>
