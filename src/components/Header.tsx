@@ -8,10 +8,10 @@ export default function Header() {
   const [value, setValue] = useState("");
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-cream-300 bg-cream-100/90 px-5 backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-cream-300/80 bg-cream-100/70 px-5 backdrop-blur">
       <Link
         href="/"
-        className="flex items-center gap-2 text-lg font-semibold tracking-tight text-forest-800 hover:text-forest-600"
+        className="flex items-center gap-2 font-display text-xl font-semibold tracking-tight text-forest-800 hover:text-forest-600"
       >
         <span aria-hidden className="text-xl">
           🔥
