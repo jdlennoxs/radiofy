@@ -33,7 +33,7 @@ export default function NowPlaying({ track, listenerCount, iframeRef }: Props) {
           </span>
         )}
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold text-forest-900">
+          <h2 className="truncate font-display text-xl font-semibold text-forest-900">
             {track?.name ?? "Nothing playing"}
           </h2>
           <p className="truncate text-sm text-forest-600">
